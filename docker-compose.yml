@@ -1,0 +1,104 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8000"
+    depends_on:
+      - duckling
+      - ollama
+      - vector_db
+      - postgres
+      - mailhog
+    environment:
+      - DUCKLING_URL=http://duckling:8000
+      - OLLAMA_URL=http://ollama:11434
+      - VECTOR_DB_URL=http://vector_db:8002
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_USE_TLS=${SMTP_USE_TLS}
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL}
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - VITE_WS_BASE_URL=${VITE_WS_BASE_URL}
+
+  duckling:
+    image: rasa/duckling
+    ports:
+      - "8000:8000"
+
+  vector_db:
+    build:
+      context: ./vector_db
+      args:
+        HF_TOKEN: ${HF_TOKEN}
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./vector_db/db_dump:/app/db_dump
+    environment:
+      - QDRANT_DB_PATH=/app/db_dump
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      - ollama
+    restart: "no"
+    entrypoint: >
+      sh -c "sleep 5 && ollama pull qwen3:1.7b"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      - CLICKHOUSE_USER=app
+      - CLICKHOUSE_PASSWORD=app
+      - CLICKHOUSE_DB=text_analyser
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init:/docker-entrypoint-initdb.d
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  ollama_data:
+  postgres_data:
+  clickhouse_data:

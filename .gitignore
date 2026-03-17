@@ -19,6 +19,17 @@ build/
 # Environment variables
 .env
 
+# Docker
+docker-compose.override.yml
+ollama_data/
+
+# Vector DB dump (keep folder, ignore data)
+vector_db/db_dump/*
+!vector_db/db_dump/.gitkeep
+
+# Node
+node_modules/
+
 # OS files
 .DS_Store
 Thumbs.db

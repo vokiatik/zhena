@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+asyncpg
+websockets
+bcrypt
+PyJWT
+pydantic[email]
+httpx

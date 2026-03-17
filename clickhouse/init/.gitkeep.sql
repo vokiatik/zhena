@@ -1,0 +1,2 @@
+-- ClickHouse init scripts go here.
+-- Files in this directory are executed automatically on first container start.
