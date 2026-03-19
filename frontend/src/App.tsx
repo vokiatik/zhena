@@ -6,6 +6,7 @@ import { useChat } from "./hooks/useChat";
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
 import "./App.css";
+import { MenuSidebar } from "./components/Menu";
 
 function ChatApp() {
   const { user, logout } = useUser();
@@ -40,6 +41,7 @@ function ChatApp() {
         processingStatuses={processingStatuses}
         onRetry={retryLastMessage}
       />
+      <MenuSidebar />
     </div>
   );
 }
@@ -63,7 +65,9 @@ function ScreeningPage() {
 }
 
 function App() {
-  return (
+  // Layout wraps all main pages for navigation
+  // Auth pages remain unwrapped
+    return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
