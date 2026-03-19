@@ -3,7 +3,6 @@ import concurrent.futures
 import httpx
 
 from sweater.query_analisys_tools.config import (
-    EMBEDDING_MODEL_NAME,
     ENTITY_MATCH_THRESHOLD,
     ENTITY_MATCH_TOP_K,
     VECTOR_DB_URL,

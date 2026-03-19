@@ -17,4 +17,5 @@ export type WsMessage =
       messageId: string;
       status: string;
       label: string;
-    };
+    }
+  | { type: "error"; chatId: string; error: string };

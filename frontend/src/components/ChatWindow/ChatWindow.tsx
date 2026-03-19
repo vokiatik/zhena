@@ -8,12 +8,13 @@ interface ChatWindowProps {
   onSend: (text: string) => void;
   isLoading: boolean;
   processingStatuses: ProcessingStatus[];
+  onRetry: () => void;
 }
 
-export default function ChatWindow({ messages, onSend, isLoading, processingStatuses }: ChatWindowProps) {
+export default function ChatWindow({ messages, onSend, isLoading, processingStatuses, onRetry }: ChatWindowProps) {
   return (
     <main className="chat">
-      <MessageList messages={messages} isLoading={isLoading} processingStatuses={processingStatuses} />
+      <MessageList messages={messages} isLoading={isLoading} processingStatuses={processingStatuses} onRetry={onRetry} />
       <ChatInput onSend={onSend} disabled={isLoading} />
     </main>
   );

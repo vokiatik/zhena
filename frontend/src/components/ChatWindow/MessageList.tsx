@@ -8,9 +8,10 @@ interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
   processingStatuses: ProcessingStatus[];
+  onRetry: () => void;
 }
 
-export default function MessageList({ messages, isLoading, processingStatuses }: MessageListProps) {
+export default function MessageList({ messages, isLoading, processingStatuses, onRetry }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function MessageList({ messages, isLoading, processingStatuses }:
       {messages.length === 0 && !isLoading && <EmptyState />}
 
       {messages.map((msg) => (
-        <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
+        <MessageBubble key={msg.id} role={msg.role} content={msg.content} isError={msg.isError} onRetry={onRetry} />
       ))}
 
       {isLoading && <TypingIndicator statuses={processingStatuses} />}

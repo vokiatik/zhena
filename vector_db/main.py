@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from qdrant_client.models import PointStruct
 
 from vector_db import client, model
-from seed_data import metric_example_db, brand_example_db, quantity_example_db
+from seed_data import metric_example_db
 
 
 def seed_db():

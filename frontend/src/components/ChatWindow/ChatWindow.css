@@ -249,3 +249,38 @@
     opacity: 0.5;
   }
 }
+
+/* ── Error message ───────────────────────────────────────────── */
+
+.chat__bubble-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 70, 70, 0.12);
+  border: 1px solid rgba(255, 70, 70, 0.3);
+  border-radius: 12px;
+  padding: 10px 16px !important;
+  color: #ff6b6b;
+}
+
+.chat__error-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.chat__retry-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e0e0e0;
+  padding: 4px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.chat__retry-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}

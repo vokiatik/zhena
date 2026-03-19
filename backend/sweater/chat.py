@@ -135,38 +135,45 @@ async def chat_websocket(websocket: WebSocket, token: str = Query(...)):
                     "message": user_msg,
                 }))
 
-                pending = _pending_clarifications.get(chat_id)
+                try:
+                    pending = _pending_clarifications.get(chat_id)
 
-                if pending and pending.get("state") == "awaiting_clarification":
-                    # User is responding to a clarification request
-                    answer_text = await _handle_clarification_flow(
-                        chat_id, content, pending, websocket
-                    )
-                elif pending and pending.get("state") == "awaiting_confirmation":
-                    # User is confirming a proposed new value (yes/no)
-                    confirmed = content.lower() in ("yes", "y", "да")
-                    entry = pending["current_entry"]
-                    proposed = pending["proposed_entry"]
-                    result = await asyncio.to_thread(
-                        handle_new_value_confirmation, confirmed, proposed, entry
-                    )
-                    if result["status"] == "clarification_needed":
-                        pending["state"] = "awaiting_clarification"
-                        answer_text = result["message"]
+                    if pending and pending.get("state") == "awaiting_clarification":
+                        # User is responding to a clarification request
+                        answer_text = await _handle_clarification_flow(
+                            chat_id, content, pending, websocket
+                        )
+                    elif pending and pending.get("state") == "awaiting_confirmation":
+                        # User is confirming a proposed new value (yes/no)
+                        confirmed = content.lower() in ("yes", "y", "да")
+                        entry = pending["current_entry"]
+                        proposed = pending["proposed_entry"]
+                        result = await asyncio.to_thread(
+                            handle_new_value_confirmation, confirmed, proposed, entry
+                        )
+                        if result["status"] == "clarification_needed":
+                            pending["state"] = "awaiting_clarification"
+                            answer_text = result["message"]
+                        else:
+                            answer_text = await _advance_clarification(chat_id, pending)
                     else:
-                        answer_text = await _advance_clarification(chat_id, pending)
-                else:
-                    # Fresh query — run the full pipeline with status updates
-                    answer_text = await _run_pipeline_with_status(
-                        chat_id, user_msg["id"], content, websocket
-                    )
+                        # Fresh query — run the full pipeline with status updates
+                        answer_text = await _run_pipeline_with_status(
+                            chat_id, user_msg["id"], content, websocket
+                        )
 
-                assistant_msg = await _save_message(chat_id, "assistant", answer_text)
-                await websocket.send_text(json.dumps({
-                    "type": "message",
-                    "chatId": chat_id,
-                    "message": assistant_msg,
-                }))
+                    assistant_msg = await _save_message(chat_id, "assistant", answer_text)
+                    await websocket.send_text(json.dumps({
+                        "type": "message",
+                        "chatId": chat_id,
+                        "message": assistant_msg,
+                    }))
+                except Exception as e:
+                    await websocket.send_text(json.dumps({
+                        "type": "error",
+                        "chatId": chat_id,
+                        "error": str(e),
+                    }))
 
             elif msg_type == "delete_chat":
                 chat_id = data.get("chatId")

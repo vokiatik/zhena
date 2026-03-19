@@ -18,6 +18,7 @@ function ChatApp() {
     selectChat,
     deleteChat,
     sendMessage,
+    retryLastMessage,
   } = useChat();
 
   return (
@@ -36,6 +37,7 @@ function ChatApp() {
         onSend={sendMessage}
         isLoading={isLoading}
         processingStatuses={processingStatuses}
+        onRetry={retryLastMessage}
       />
     </div>
   );

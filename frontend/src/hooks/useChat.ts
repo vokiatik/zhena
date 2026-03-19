@@ -11,6 +11,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [processingStatuses, setProcessingStatuses] = useState<ProcessingStatus[]>([]);
   const pendingMsgRef = useRef<string | null>(null);
+  const lastSentRef = useRef<{ chatId: string; content: string } | null>(null);
   const sendRef = useRef<(data: Record<string, unknown>) => void>(() => {});
 
   const activeChat = chats.find((c) => c.id === activeChatId) ?? null;
@@ -30,6 +31,7 @@ export function useChat() {
       const pending = pendingMsgRef.current;
       if (pending) {
         pendingMsgRef.current = null;
+        lastSentRef.current = { chatId: msg.chatId, content: pending };
         sendRef.current({ type: "message", chatId: msg.chatId, content: pending });
         setIsLoading(true);
       }
@@ -60,6 +62,21 @@ export function useChat() {
     } else if (msg.type === "chat_deleted") {
       setChats((prev) => prev.filter((c) => c.id !== msg.chatId));
       setActiveChatId((prev) => (prev === msg.chatId ? null : prev));
+    } else if (msg.type === "error") {
+      const errorMsg: Message = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: msg.error,
+        timestamp: Date.now(),
+        isError: true,
+      };
+      setChats((prev) =>
+        prev.map((c) =>
+          c.id === msg.chatId ? { ...c, messages: [...c.messages, errorMsg] } : c
+        )
+      );
+      setIsLoading(false);
+      setProcessingStatuses([]);
     }
   }, []);
 
@@ -128,11 +145,27 @@ export function useChat() {
         send({ type: "new_chat", title: text.slice(0, 40) });
         return;
       }
+      lastSentRef.current = { chatId: activeChatId, content: text };
       send({ type: "message", chatId: activeChatId, content: text });
       setIsLoading(true);
     },
     [activeChatId, send]
   );
+
+  const retryLastMessage = useCallback(() => {
+    const last = lastSentRef.current;
+    if (!last) return;
+    // Remove trailing error message(s) from the chat
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === last.chatId
+          ? { ...c, messages: c.messages.filter((m) => !m.isError) }
+          : c
+      )
+    );
+    send({ type: "message", chatId: last.chatId, content: last.content });
+    setIsLoading(true);
+  }, [send]);
 
   return {
     chats,
@@ -144,5 +177,6 @@ export function useChat() {
     selectChat,
     deleteChat,
     sendMessage,
+    retryLastMessage,
   };
 }
