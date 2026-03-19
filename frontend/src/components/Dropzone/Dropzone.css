@@ -1,0 +1,85 @@
+.file-upload {
+  max-width: 600px;
+  width: 100%;
+}
+
+.file-upload__input {
+  display: none;
+}
+
+.file-upload-dropzone {
+  border: 2px dashed #999;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fafafa;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.file-upload-dropzone--dragover {
+  border-color: #1976d2;
+  background-color: #f4f9ff;
+}
+
+.file-upload-dropzone--disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.file-upload-dropzone__title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+}
+
+.file-upload-dropzone__text {
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.file-upload-dropzone__hint {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.file-upload-dropzone__status {
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.file-upload-message {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.file-upload-message--success {
+  background-color: #eaf8ee;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+
+.file-upload-message--error {
+  background-color: #fdecec;
+  color: #b71c1c;
+  border: 1px solid #f5c6cb;
+}
+
+.file-upload-message--neutral {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
