@@ -4,8 +4,15 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Query
+from requests import Session
 
-from sweater.database import get_pool
+from backend.sweater.database.database import get_db
+from backend.sweater.schemas.chat.Chat_schema import ChatRequest
+from backend.sweater.schemas.chat.Message_schema import MessageRequest
+from backend.sweater.schemas.chat.Processing_status_schema import ProcessingStatus
+from backend.sweater.services.chat.chat_service import create_chat, delete_chat_by_id, get_chats_by_user_id, get_user_id_by_chat_id
+from backend.sweater.services.chat.message_service import create_message, get_messages_by_chat_id
+from backend.sweater.services.chat.processing_statuses_service import create_processing_status
 from sweater.query_analisys_tools.pipeline import (
     extract_and_match,
     compare_metrics,
@@ -18,7 +25,7 @@ from sweater.query_analisys_tools.clarification import (
     build_clarification_message,
 )
 from sweater.auth import get_current_user, decode_jwt
-
+from sweater.query_analisys_tools.pipeline import build_sql_query
 # Per-connection state for pending clarifications: chat_id -> list of unmatched entries
 _pending_clarifications: dict[str, dict] = {}
 
@@ -38,34 +45,29 @@ router = APIRouter()
 # ── REST endpoints for chat history ──────────────────────────────────
 
 @router.get("/chats")
-async def list_chats(user: dict = Depends(get_current_user)):
-    """Return all chats for the authenticated user ordered by most recent first."""
-    pool = await get_pool()
-    rows = await pool.fetch(
-        "SELECT id, title, created_at FROM chats WHERE user_id = $1 ORDER BY created_at DESC",
-        uuid.UUID(user["id"]),
-    )
+async def list_chats(
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    chat_list = get_chats_by_user_id(db, user["id"])
     return [
-        {"id": str(r["id"]), "title": r["title"], "createdAt": r["created_at"].isoformat()}
-        for r in rows
+        {"id": chat.id, "title": chat.message, "createdAt": chat.timestamp.isoformat()}
+        for chat in sorted(chat_list, key=lambda c: c.timestamp, reverse=True)
     ]
 
 
 @router.get("/chats/{chat_id}/messages")
-async def get_messages(chat_id: uuid.UUID, user: dict = Depends(get_current_user)):
-    """Return all messages for a chat owned by the authenticated user."""
-    pool = await get_pool()
-    # Verify ownership
-    owner = await pool.fetchval(
-        "SELECT user_id FROM chats WHERE id = $1", chat_id,
-    )
+async def get_messages(
+    chat_id: uuid.UUID, 
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    owner = get_user_id_by_chat_id(db, str(chat_id))
+   
     if owner is None or str(owner) != user["id"]:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    rows = await pool.fetch(
-        "SELECT id, role, content, created_at FROM messages WHERE chat_id = $1 ORDER BY created_at",
-        chat_id,
-    )
+    rows = await get_messages_by_chat_id(db, str(chat_id))
     return [
         {
             "id": str(r["id"]),
@@ -78,19 +80,26 @@ async def get_messages(chat_id: uuid.UUID, user: dict = Depends(get_current_user
 
 
 @router.delete("/chats/{chat_id}")
-async def delete_chat(chat_id: uuid.UUID, user: dict = Depends(get_current_user)):
-    pool = await get_pool()
-    result = await pool.execute(
-        "DELETE FROM chats WHERE id = $1 AND user_id = $2",
-        chat_id, uuid.UUID(user["id"]),
-    )
+async def delete_chat(
+    chat_id: uuid.UUID, 
+    user: dict = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    owner = get_user_id_by_chat_id(db, str(chat_id))
+    if owner is None or str(owner) != user["id"]:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    delete_chat_by_id(db, str(chat_id))
     return {"ok": True}
 
 
 # ── WebSocket ────────────────────────────────────────────────────────
 
 @router.websocket("/ws/chat")
-async def chat_websocket(websocket: WebSocket, token: str = Query(...)):
+async def chat_websocket(
+    websocket: WebSocket, 
+    token: str = Query(...),
+    db: Session = Depends(get_db),    
+):
     # Authenticate via token query parameter
     try:
         payload = decode_jwt(token)
@@ -121,10 +130,7 @@ async def chat_websocket(websocket: WebSocket, token: str = Query(...)):
                 if not chat_id or not content:
                     continue
 
-                pool = await get_pool()
-                owner = await pool.fetchval(
-                    "SELECT user_id FROM chats WHERE id = $1", uuid.UUID(chat_id),
-                )
+                owner = get_user_id_by_chat_id(db, str(chat_id))
                 if owner is None or str(owner) != user_id:
                     continue
 
@@ -178,11 +184,7 @@ async def chat_websocket(websocket: WebSocket, token: str = Query(...)):
             elif msg_type == "delete_chat":
                 chat_id = data.get("chatId")
                 if chat_id:
-                    pool = await get_pool()
-                    await pool.execute(
-                        "DELETE FROM chats WHERE id = $1 AND user_id = $2",
-                        uuid.UUID(chat_id), uuid.UUID(user_id),
-                    )
+                    delete_chat_by_id(db, str(chat_id))
                     await websocket.send_text(json.dumps({
                         "type": "chat_deleted",
                         "chatId": chat_id,
@@ -227,7 +229,7 @@ async def _advance_clarification(chat_id, pending):
         )
 
     # All clarifications resolved — build final result
-    from sweater.query_analisys_tools.pipeline import build_sql_query
+    
     result = build_sql_query(pending["matched"], pending["decomposed"])
     _pending_clarifications.pop(chat_id, None)
     return json.dumps(result, indent=2)
@@ -248,13 +250,19 @@ async def _send_status(websocket: WebSocket, chat_id: str, message_id: str, stat
     }))
 
 
-async def _save_status(message_id: str, status: str, label: str):
+async def _save_status(
+    message_id: str, 
+    status: str, 
+    label: str,
+    db: Session = Depends(get_db),
+):
     """Persist a processing status row."""
-    pool = await get_pool()
-    await pool.execute(
-        "INSERT INTO processing_statuses (message_id, status, label) VALUES ($1, $2, $3)",
-        uuid.UUID(message_id), status, label,
-    )
+    create_processing_status(db, ProcessingStatus(
+        message_id=message_id,
+        status=status,
+        label=label,
+        created_at=datetime.now(timezone.utc).isoformat(),
+    ))
 
 
 async def _run_pipeline_with_status(chat_id: str, message_id: str, content: str, websocket: WebSocket) -> str:
@@ -297,27 +305,35 @@ async def _run_pipeline_with_status(chat_id: str, message_id: str, content: str,
     return build_clarification_message(unmatched)
 
 
-async def _create_chat(user_id: str, title: str) -> tuple[str, str]:
-    pool = await get_pool()
-    row = await pool.fetchrow(
-        "INSERT INTO chats (user_id, title) VALUES ($1, $2) RETURNING id, title",
-        uuid.UUID(user_id), title[:255],
-    )
-    return str(row["id"]), row["title"]
+async def _create_chat(
+    user_id: str, 
+    title: str,
+    db: Session = Depends(get_db),
+) -> tuple[str, str]:
+    
+    chat = create_chat(db, ChatRequest(
+        user_id=user_id,
+        message=title,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+    ))
+    return str(chat.id), chat.message
 
 
-async def _save_message(chat_id: str, role: str, content: str) -> dict:
-    pool = await get_pool()
-    row = await pool.fetchrow(
-        "INSERT INTO messages (chat_id, role, content) VALUES ($1, $2, $3) "
-        "RETURNING id, role, content, created_at",
-        uuid.UUID(chat_id),
-        role,
-        content,
-    )
+async def _save_message(
+    chat_id: str, 
+    role: str, 
+    content: str, 
+    db: Session = Depends(get_db)
+) -> dict:
+    message = create_message(db, MessageRequest(
+        chat_id=chat_id,
+        user_id="",  # Not needed for messages, but the schema requires it
+        message=content,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+    ))
     return {
-        "id": str(row["id"]),
-        "role": row["role"],
-        "content": row["content"],
-        "timestamp": int(row["created_at"].replace(tzinfo=timezone.utc).timestamp() * 1000),
+        "id": str(message.id),
+        "role": message.role,
+        "content": message.content,
+        "timestamp": int(message.timestamp.replace(tzinfo=timezone.utc).timestamp() * 1000),
     }

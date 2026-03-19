@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from sweater.database import get_pool
+from backend.sweater.database.database import get_pool
 from sweater.auth import get_current_user
 
 router = APIRouter(prefix="/pictures", tags=["pictures"])
