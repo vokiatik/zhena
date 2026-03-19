@@ -67,6 +67,20 @@ _MIGRATIONS = [
     );""",
 
     "CREATE INDEX IF NOT EXISTS idx_processing_statuses_message_id ON processing_statuses(message_id);",
+
+    """CREATE TABLE IF NOT EXISTS pictures_set_a (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        url        TEXT         NOT NULL,
+        verified   BOOLEAN      NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    );""",
+
+    """CREATE TABLE IF NOT EXISTS pictures_set_b (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        url        TEXT         NOT NULL,
+        verified   BOOLEAN      NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    );""",
 ]
 
 

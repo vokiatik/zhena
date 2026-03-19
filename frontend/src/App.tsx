@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { useUser } from "./contexts";
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ConfirmEmailPage } from "./components/Auth";
+import { PictureScreening } from "./components/PictureScreening";
 import { useChat } from "./hooks/useChat";
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
@@ -55,6 +56,12 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
   return !user ? <>{children}</> : <Navigate to="/" replace />;
 }
 
+function ScreeningPage() {
+  const { tableName } = useParams<{ tableName: string }>();
+  if (!tableName) return <Navigate to="/" replace />;
+  return <PictureScreening tableName={tableName} />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -64,6 +71,10 @@ function App() {
         <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
         <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
         <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+        <Route
+          path="/screening/:tableName"
+          element={<PrivateRoute><ScreeningPage /></PrivateRoute>}
+        />
         <Route path="/" element={<PrivateRoute><ChatApp /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
