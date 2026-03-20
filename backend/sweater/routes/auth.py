@@ -1,5 +1,6 @@
 import os
 import secrets
+import uuid
 import jwt
 import bcrypt
 
@@ -7,12 +8,12 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from requests import Session
 
-from backend.sweater.database.database import get_db
-from backend.sweater.schemas.auth.User_schema import RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest, UserCreate, UserUpdate
-from backend.sweater.schemas.auth.Email_confirmation_schema import ConfirmEmailRequest, EmailConfirmationRequest
-from backend.sweater.services.auth.email_confirmation_service import create_email_confirmation, delete_email_confirmation_by_token, get_email_confirmation_by_token
-from backend.sweater.services.auth.password_reset_service import create_password_reset, delete_password_reset_by_token, delete_password_resets_by_user_id, get_password_reset_by_token
-from backend.sweater.services.auth.user_service import create_user, get_user_by_email, update_user
+from sweater.database.database import get_db
+from sweater.schemas.auth.User_schema import RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest, UserCreate, UserUpdate
+from sweater.schemas.auth.Email_confirmation_schema import ConfirmEmailRequest, EmailConfirmationRequest
+from sweater.services.auth.email_confirmation_service import create_email_confirmation, delete_email_confirmation_by_token, get_email_confirmation_by_token
+from sweater.services.auth.password_reset_service import create_password_reset, delete_password_reset_by_token, delete_password_resets_by_user_id, get_password_reset_by_token
+from sweater.services.auth.user_service import create_user, get_user_by_email, update_user
 from sweater.email_sender import send_confirmation_email, send_password_reset_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -104,7 +105,7 @@ async def confirm_email(
     if email_confirmation.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Confirmation token has expired")
     
-    update_user(db, int(email_confirmation.user_id), UserUpdate(is_confirmed=True))
+    update_user(db, email_confirmation.user_id, UserUpdate(is_confirmed=True))
     delete_email_confirmation_by_token(db, body.token)
 
     return {"message": "Email confirmed successfully. You can now log in."}
@@ -158,7 +159,7 @@ async def reset_password(
         raise HTTPException(status_code=400, detail="Reset token has expired")
 
     pw_hash = hash_password(body.password)
-    update_user(db, int(password_reset.user_id), UserUpdate(password_hash=pw_hash))
+    update_user(db, uuid.UUID(password_reset.user_id), UserUpdate(password_hash=pw_hash))
     delete_password_reset_by_token(db, body.token)
 
     return {"message": "Password reset successfully. You can now log in."}

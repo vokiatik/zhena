@@ -1,22 +1,17 @@
-import os
-import secrets
-from datetime import datetime, timedelta, timezone
+from requests import Session
+from fastapi import APIRouter, Depends, HTTPException
 
-import jwt
-import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from sweater.models.Retail_model import Retail
+from sweater.schemas.fileUpload.file_upload_shcema import UploadResponse
+from sweater.database.database import get_db
 
-from backend.sweater.database.database import get_pool
-from sweater.email_sender import send_confirmation_email, send_password_reset_email
-
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy.orm import Session
 
 from io import BytesIO
 import pandas as pd
 
-
 router = APIRouter(prefix="/upload", tags=["file_uploading"])
-
 
 EXPECTED_COLUMNS = [
     "Ретейлер clean",
@@ -30,7 +25,6 @@ EXPECTED_COLUMNS = [
     "Дата последнего скрина",
     "Advertisement ID",
 ]
-
 
 def parse_uploaded_file(filename: str, content: bytes) -> pd.DataFrame:
     lower_name = filename.lower()
@@ -79,7 +73,7 @@ def save_dataframe_to_db(db: Session, df) -> int:
     rows = []
 
     for _, row in df.iterrows():
-        db_row = RetailUploadRow(
+        db_row = Retail(
             retailer_clean=row.get("Ретейлер clean"),
             advertiser_producer=row.get("Advertiser (producer)"),
             brands_list=row.get("Brands list"),

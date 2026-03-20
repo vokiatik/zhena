@@ -1,9 +1,9 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-from backend.sweater.database.database import Base
+from sweater.database.database import Base
 
-class RetailUploadRow(Base):
+class Retail(Base):
     __tablename__ = "retail_upload_rows"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -18,6 +18,10 @@ class RetailUploadRow(Base):
     first_screen_date = Column("Дата первого скрина", Date, nullable=True)
     last_screen_date = Column("Дата последнего скрина", Date, nullable=True)
     advertisement_id = Column("Advertisement ID", Text, nullable=True)
-
+    # advertisement_id = Column("Advertising category", Text, nullable=True)
+    # advertisement_id = Column("Seasonal", Text, nullable=True)
+    # advertisement_id = Column("!Формат	Количество дней размещения est.", Text, nullable=True)
+    # advertisement_id = Column("group_id", Text, nullable=True)
+    
     verified = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

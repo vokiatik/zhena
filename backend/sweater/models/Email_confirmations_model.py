@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-from backend.sweater.database.database import Base
+from sweater.database.database import Base
 
 class EmailConfirmation(Base):
     __tablename__ = "email_confirmations"

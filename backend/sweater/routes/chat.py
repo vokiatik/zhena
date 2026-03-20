@@ -6,13 +6,13 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Query
 from requests import Session
 
-from backend.sweater.database.database import get_db
-from backend.sweater.schemas.chat.Chat_schema import ChatRequest
-from backend.sweater.schemas.chat.Message_schema import MessageRequest
-from backend.sweater.schemas.chat.Processing_status_schema import ProcessingStatus
-from backend.sweater.services.chat.chat_service import create_chat, delete_chat_by_id, get_chats_by_user_id, get_user_id_by_chat_id
-from backend.sweater.services.chat.message_service import create_message, get_messages_by_chat_id
-from backend.sweater.services.chat.processing_statuses_service import create_processing_status
+from sweater.database.database import get_db
+from sweater.schemas.chat.Chat_schema import ChatRequest
+from sweater.schemas.chat.Message_schema import MessageRequest
+from sweater.schemas.chat.Processing_status_schema import ProcessingStatus
+from sweater.services.chat.chat_service import create_chat, delete_chat_by_id, get_chats_by_user_id, get_user_id_by_chat_id
+from sweater.services.chat.message_service import create_message, get_messages_by_chat_id
+from sweater.services.chat.processing_statuses_service import create_processing_status
 from sweater.query_analisys_tools.pipeline import (
     extract_and_match,
     compare_metrics,
@@ -24,7 +24,7 @@ from sweater.query_analisys_tools.clarification import (
     handle_new_value_confirmation,
     build_clarification_message,
 )
-from sweater.auth import get_current_user, decode_jwt
+from sweater.routes.auth import get_current_user, decode_jwt
 from sweater.query_analisys_tools.pipeline import build_sql_query
 # Per-connection state for pending clarifications: chat_id -> list of unmatched entries
 _pending_clarifications: dict[str, dict] = {}

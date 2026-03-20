@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.sweater.models import RetailUploadRow
+from sweater.models import RetailUploadRow
 
 
 def save_dataframe_to_db(db: Session, df) -> int:

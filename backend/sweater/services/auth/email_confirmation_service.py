@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from backend.sweater.schemas.auth.Email_confirmation_schema import EmailConfirmationRequest, EmailConfirmationResponse
-from backend.sweater.models.Email_confirmations_model import EmailConfirmation
+from sweater.schemas.auth.Email_confirmation_schema import EmailConfirmationRequest, EmailConfirmationResponse
+from sweater.models.Email_confirmations_model import EmailConfirmation
 
 def create_email_confirmation(db: Session, email_confirmation: EmailConfirmationRequest):
     db_email_confirmation = EmailConfirmation(

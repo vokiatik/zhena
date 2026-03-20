@@ -1,6 +1,8 @@
+import uuid
+
 from sqlalchemy.orm import Session
-from backend.sweater.schemas.auth.User_schema import UserCreate, UserUpdate
-from backend.sweater.models.User_model import UserModel
+from sweater.schemas.auth.User_schema import UserCreate, UserUpdate
+from sweater.models.User_model import UserModel
 
 # ✅ CREATE (INSERT)
 def create_user(db: Session, user: UserCreate):
@@ -16,7 +18,7 @@ def create_user(db: Session, user: UserCreate):
 
 
 # ✅ READ (SELECT ONE)
-def get_user(db: Session, user_id: int):
+def get_user(db: Session, user_id: uuid.UUID):
     return db.query(UserModel).filter(UserModel.id == user_id).first()
 
 def get_user_by_email(db: Session, email: str):
@@ -28,7 +30,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 10):
 
 
 # ✅ UPDATE
-def update_user(db: Session, user_id: int, user_update: UserUpdate):
+def update_user(db: Session, user_id: uuid.UUID, user_update: UserUpdate):
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
 
     if not db_user:
@@ -49,7 +51,7 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
 
 
 # ✅ DELETE
-def delete_user(db: Session, user_id: int):
+def delete_user(db: Session, user_id: uuid.UUID):
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
 
     if not db_user:
