@@ -25,19 +25,27 @@ export default function FileUploadDropzone() {
     }
 
     try {
-      setUploadState("uploading");
-      setMessage("Uploading file...");
-        const result = await apiClient.post("/upload/incoming", file, {
-          headers: {
-            "Content-Type": file.type,
-          },
-        });
+        setUploadState("uploading");
+        setMessage("Uploading file...");
+        const filedata = new FormData();
+        filedata.append("file", file);
 
-      setUploadState("success");
-      setMessage(
-        result?.data ||
-          `Upload completed successfully. Inserted ${result?.data?.inserted_rows ?? 0} rows.`
-      );
+        const result = await apiClient.post("/upload/retail-file", filedata, {
+            headers: {
+            "Content-Type": "multipart/form-data",
+            },
+        });
+        console.log(result);
+        if (result?.data?.ok) {
+            setUploadState("success");
+            setMessage(
+                result?.data?.message ||
+                `Upload completed successfully. Inserted ${result?.data?.inserted_rows ?? 0} rows.`
+            );
+        } else {
+            setUploadState("error");
+            setMessage(result?.data?.message || "Upload failed.");
+        }
     } catch (error: any) {
       const backendMessage =
         error?.response?.data?.detail ||

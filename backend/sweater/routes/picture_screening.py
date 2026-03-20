@@ -19,12 +19,7 @@ async def get_unverified_pictures(
     role: str = None
 ):
     pictures = getUnverifiedPictures(db)
-    print(role)
-    results = []
-    for p in pictures:
-        item: dict = {k: (str(v) if isinstance(v, uuid.UUID) else v) for k, v in dict(p).items()}
-        results.append(item)
-    return results
+    return pictures
 
 
 @router.post("/verify")

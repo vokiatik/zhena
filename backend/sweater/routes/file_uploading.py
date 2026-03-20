@@ -99,6 +99,7 @@ async def upload_retail_file(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
+    print(f"Received file: {file.filename}, content type: {file.content_type}")
     if not file.filename:
         raise HTTPException(status_code=400, detail="File name is missing.")
 
