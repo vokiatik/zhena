@@ -1,5 +1,5 @@
 from requests import Session
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException
 
 from sweater.models.Retail_model import Retail
 from sweater.schemas.fileUpload.file_upload_shcema import UploadResponse
@@ -97,9 +97,10 @@ def save_dataframe_to_db(db: Session, df) -> int:
 @router.post("/retail-file", response_model=UploadResponse)
 async def upload_retail_file(
     file: UploadFile = File(...),
+    filetype: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    print(f"Received file: {file.filename}, content type: {file.content_type}")
+    print(f"Received file: {file.filename}, content type: {file.content_type}, filetype: {filetype}")
     if not file.filename:
         raise HTTPException(status_code=400, detail="File name is missing.")
 
