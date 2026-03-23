@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from dotenv import load_dotenv
 
-from sweater.database.database import Base
+from backend.sweater.database.base_db import Base
 
 from sweater.models.User_model import UserModel
 from sweater.models.Retail_model import Retail

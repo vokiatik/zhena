@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-from sweater.database.database import Base
+from backend.sweater.database.base_db import Base
 
 class PasswordReset(Base):
     __tablename__ = "password_resets"

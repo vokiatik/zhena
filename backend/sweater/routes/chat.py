@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Query
 from requests import Session
 
-from sweater.database.database import get_db
+from backend.sweater.database.base_db import get_db
 from sweater.schemas.chat.Chat_schema import ChatRequest
 from sweater.schemas.chat.Message_schema import MessageRequest
 from sweater.schemas.chat.Processing_status_schema import ProcessingStatus

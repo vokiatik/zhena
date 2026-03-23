@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from requests import Session
 
 from sweater.schemas.auth.Password_reset_schema import PasswordResetRequest
-from sweater.database.database import get_db
+from backend.sweater.database.base_db import get_db
 from sweater.schemas.auth.User_schema import RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest, UserCreate, UserUpdate
 from sweater.schemas.auth.Email_confirmation_schema import ConfirmEmailRequest, EmailConfirmationRequest
 from sweater.services.auth.email_confirmation_service import create_email_confirmation, delete_email_confirmation_by_token, get_email_confirmation_by_token

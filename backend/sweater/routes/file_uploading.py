@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 
 from sweater.models.Retail_model import Retail
 from sweater.schemas.fileUpload.file_upload_shcema import UploadResponse
-from sweater.database.database import get_db
+from backend.sweater.database.base_db import get_db
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session

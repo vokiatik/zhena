@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from requests import Session
 
-from sweater.database.database import get_db
+from backend.sweater.database.base_db import get_db
 from sweater.routes.auth import get_current_user
 from sweater.services.picture.picture_verification_service import getUnverifiedPictureById, getUnverifiedPictures, verifyPicture
 
