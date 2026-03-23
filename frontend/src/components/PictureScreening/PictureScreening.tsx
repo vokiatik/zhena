@@ -3,49 +3,53 @@ import PictureViewer from "./PictureViewer";
 import "./PictureScreening.css";
 
 interface PictureScreeningProps {
-  tableName: string;
+    role: string;
 }
 
-export default function PictureScreening({ tableName }: PictureScreeningProps) {
-  const {
-    currentPicture,
-    previousPicture,
-    currentIndex,
-    total,
-    isLoading,
-    error,
-    verifyAndNext,
-    goBack,
-  } = usePictureScreening(tableName);
+export default function PictureScreening({ role }: PictureScreeningProps) {
+    const {
+        currentPicture,
+        previousPicture,
+        currentIndex,
+        canCancelVerification,
+        total,
+        isLoading,
+        error,
+        verifyAndNext,
+        goBack,
+        unverify,
+    } = usePictureScreening(role);
 
-  if (isLoading) {
-    return <div className="ps-container"><p className="ps-loading">Loading pictures…</p></div>;
-  }
+    if (isLoading) {
+        return <div className="ps-container"><p className="ps-loading">Loading pictures…</p></div>;
+    }
 
-  if (error) {
-    return <div className="ps-container"><p className="ps-error">{error}</p></div>;
-  }
+    if (error) {
+        return <div className="ps-container"><p className="ps-error">{error}</p></div>;
+    }
 
-  if (!currentPicture) {
+    if (!currentPicture) {
+        return (
+            <div className="ps-container">
+                <p className="ps-done">All pictures have been verified!</p>
+            </div>
+        );
+    }
+
     return (
-      <div className="ps-container">
-        <p className="ps-done">All pictures have been verified!</p>
-      </div>
+        <div className="ps-container">
+            <div className="ps-header">
+                <h2>Picture Screening — {role}</h2>
+                <span className="ps-counter">{currentIndex + 1} / {total}</span>
+            </div>
+            <PictureViewer
+                picture={currentPicture}
+                previousPicture={previousPicture}
+                canCancelVerification={canCancelVerification}
+                onVerify={verifyAndNext}
+                onGoBack={goBack}
+                onUnverify={unverify}
+            />
+        </div>
     );
-  }
-
-  return (
-    <div className="ps-container">
-      <div className="ps-header">
-        <h2>Picture Screening — {tableName}</h2>
-        <span className="ps-counter">{currentIndex + 1} / {total}</span>
-      </div>
-      <PictureViewer
-        picture={currentPicture}
-        previousPicture={previousPicture}
-        onVerify={verifyAndNext}
-        onGoBack={goBack}
-      />
-    </div>
-  );
 }

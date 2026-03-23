@@ -20,5 +20,10 @@ def verifyPicture(db: Session, values: Retail):
     picture.verified = True
     db.commit()
 
+def unverifyPicture(db: Session, values: Retail):
+    picture = db.query(Retail).filter_by(id=values.id).first()
+    picture.verified = False
+    db.commit()
+    
 def getUnverifiedPictureById(db: Session, picture_id: str):
     return db.query(Retail).filter_by(id=picture_id).first()

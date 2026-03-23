@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useUser } from "./contexts";
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ConfirmEmailPage } from "./components/Auth";
 import { FileUploadPage } from "./pages/UploadPage";
@@ -21,27 +21,27 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
 function App() {
   // Layout wraps all main pages for navigation
   // Auth pages remain unwrapped
-    return (
+  return (
     <BrowserRouter>
-    <Routes>
+      <Routes>
         <Route element={<MainLayout />}>
-            <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-            <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-            <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
-            <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
-            <Route path="/confirm-email" element={<ConfirmEmailPage />} />
-            <Route
-            path="/screening/:tableName"
+          <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+          <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+          <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+          <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+          <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+          <Route
+            path="/screening/:role"
             element={<PrivateRoute><ScreeningPage /></PrivateRoute>}
-            />
-            <Route
-            path="/upload"
+          />
+          <Route
+            path="/upload/:defaultfiletype?"
             element={<PrivateRoute><FileUploadPage /></PrivateRoute>}
-            />
-            <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+          />
+          <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
-    </Routes>
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -32,11 +32,28 @@ async def verify_picture(
     if not picture:
         raise HTTPException(status_code=404, detail="Picture not found")
     
-    picture_dict = dict(picture)
     for key, value in body.extra.items():
-        if key in picture_dict:
-            setattr(picture, key, value)
+        setattr(picture, key, value)
 
+    print(picture)
     verifyPicture(db, picture)
+    
+    return {"ok": True}
+
+@router.post("/unverify")
+async def unverify_picture(
+    body: VerifyRequest,
+    db: Session = Depends(get_db),
+):
+    picture_id = body.id
+    picture = getUnverifiedPictureById(db, picture_id)
+    if not picture:
+        raise HTTPException(status_code=404, detail="Picture not found")
+    
+    for key, value in body.extra.items():
+        setattr(picture, key, value)
+
+    print(picture)
+    unverify_picture(db, picture)
     
     return {"ok": True}

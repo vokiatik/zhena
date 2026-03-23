@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from requests import Session
 
+from sweater.schemas.auth.Password_reset_schema import PasswordResetRequest
 from sweater.database.database import get_db
 from sweater.schemas.auth.User_schema import RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest, UserCreate, UserUpdate
 from sweater.schemas.auth.Email_confirmation_schema import ConfirmEmailRequest, EmailConfirmationRequest
@@ -137,7 +138,12 @@ async def forgot_password(
         token = secrets.token_urlsafe(48)
         # Remove any existing reset tokens for this user
         delete_password_resets_by_user_id(db, user.id)
-        create_password_reset(db, user.id, token, datetime.now(timezone.utc) + timedelta(hours=1))
+        password_reset = PasswordResetRequest(
+            user_id=str(user.id),
+            token=token,
+            expires_at=(datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        )
+        create_password_reset(db, password_reset)
         reset_url = f"{FRONTEND_URL}/reset-password?token={token}"
         await send_password_reset_email(body.email, reset_url)
     
@@ -159,7 +165,7 @@ async def reset_password(
         raise HTTPException(status_code=400, detail="Reset token has expired")
 
     pw_hash = hash_password(body.password)
-    update_user(db, uuid.UUID(password_reset.user_id), UserUpdate(password_hash=pw_hash))
+    update_user(db, password_reset.user_id, UserUpdate(password_hash=pw_hash))
     delete_password_reset_by_token(db, body.token)
 
     return {"message": "Password reset successfully. You can now log in."}

@@ -23,3 +23,58 @@
   font-size: 16px;
   color: #ccc;
 }
+
+.file-upload-page__dropzone {
+  margin: 0 auto;
+}
+.file-upload-page__footer {
+  margin-top: 40px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+.file-upload-page__footer a {
+  color: #1976d2;
+  text-decoration: none;
+}
+.file-upload-page__footer a:hover {
+  text-decoration: underline;
+}
+
+.file-upload-dropdown {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.file-upload-dropdown__title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+} 
+
+.file-upload-dropdown__text {
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: #333;
+} 
+
+.file-upload-dropdown__label {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.file-upload-dropdown__select{
+  margin-top: 16px;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1976d2;
+  background-color: #222;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
