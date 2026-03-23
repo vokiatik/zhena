@@ -11,10 +11,9 @@ interface PictureViewerProps {
 }
 
 const HIDDEN_FIELDS = new Set(["id", "verified", "created_at"]);
-const SAVE_DELAY = 3000;
+const SAVE_DELAY = 2000;
 
 export default function PictureViewer({ picture, previousPicture, canCancelVerification, onVerify, onGoBack, onUnverify }: PictureViewerProps) {
-    // Extract editable text fields from the picture object
     const getEditableFields = useCallback((pic: PictureItem): Record<string, string> => {
         const fields: Record<string, string> = {};
         for (const [key, value] of Object.entries(pic)) {
@@ -58,11 +57,9 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
         }, SAVE_DELAY);
     }, [saving, fields, onVerify]);
 
-    // Listen for any keypress to cancel save banner
     useEffect(() => {
         if (!saving) return;
         const handler = (e: KeyboardEvent) => {
-            // Prevent the key from also triggering other actions while cancelling
             e.preventDefault();
             cancelSave();
         };
@@ -97,7 +94,7 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
 
             {/* Editable fields */}
             <div className="pv-fields">
-                {Object.entries(fields).map(([key, value]) => (
+                {Object.entries(fields).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)).map(([key, value]) => (
                     <label key={key} className="pv-field">
                         <span className="pv-field-label">{key}</span>
                         <input

@@ -55,6 +55,7 @@ export function usePictureScreening(role: string) {
     },
     [currentPicture, post, role]
   );
+
   const unverify = useCallback(
     async (updatedData: Record<string, string>) => {
       if (!currentPicture) return;
@@ -95,6 +96,5 @@ export function usePictureScreening(role: string) {
     goBack,
     refetch: fetchPictures,
     unverify,
-    
   };
 }
