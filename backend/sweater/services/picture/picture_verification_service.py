@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sweater.schemas.picture.picture_verification_scheme import VerifyRequest
-from sweater.models.Retail_model import Retail
+from sweater.models.retail.Retail_model import Retail
 
 def getUnverifiedPictures(db: Session):
     return db.query(Retail).filter_by(verified=False).order_by(Retail.created_at).all()
@@ -27,3 +27,6 @@ def unverifyPicture(db: Session, values: Retail):
     
 def getUnverifiedPictureById(db: Session, picture_id: str):
     return db.query(Retail).filter_by(id=picture_id).first()
+
+def getPictureAttributeReferenceByAttributeName(db: Session, attribute_name: str):
+    return db.query()

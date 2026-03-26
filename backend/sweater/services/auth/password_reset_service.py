@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sweater.schemas.auth.Password_reset_schema import PasswordResetRequest
-from sweater.models.Password_reset_model import PasswordReset
+from sweater.models.auth.Password_reset_model import PasswordReset
 
 def create_password_reset(db: Session, password_reset: PasswordResetRequest):
     db_password_reset = PasswordReset(

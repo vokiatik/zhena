@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from sweater.schemas.chat.Processing_status_schema import ProcessingStatus
-from sweater.models.Processing_statuses_model import ProcessingStatus
-
+from sweater.models.chat.Processing_status_model import ProcessingStatus
 def create_processing_status(db: Session, processing_status: ProcessingStatus):
     db_processing_status = ProcessingStatus(
         message_id=processing_status.message_id,

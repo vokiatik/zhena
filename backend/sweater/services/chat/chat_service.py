@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sweater.schemas.chat.Chat_schema import ChatRequest
-from sweater.models.Chat_model import Chat
+from sweater.models.chat.Chat_model import Chat
 
 def create_chat(db: Session, chat: ChatRequest):
     db_chat = Chat(

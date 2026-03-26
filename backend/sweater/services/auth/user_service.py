@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 from sweater.schemas.auth.User_schema import UserCreate, UserUpdate
-from sweater.models.User_model import UserModel
+from sweater.models.auth.User_model import UserModel
 
 # ✅ CREATE (INSERT)
 def create_user(db: Session, user: UserCreate):

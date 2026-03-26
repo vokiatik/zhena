@@ -12,7 +12,7 @@ Reference_SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=re
 Reference_Base = declarative_base()
 
 
-def get_db():
+def get_reference_db():
     db = Reference_SessionLocal()
     try:
         yield db

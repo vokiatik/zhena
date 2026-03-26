@@ -4,12 +4,18 @@ import './index.css'
 import App from './App.tsx'
 import { ApiProvider } from './api'
 import { UserProvider } from './contexts'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ToastProvider } from './contexts/ToastContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ApiProvider>
       <UserProvider>
-        <App />
+        <QueryClientProvider client={new QueryClient()}>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </QueryClientProvider>
       </UserProvider>
     </ApiProvider>
   </StrictMode>,

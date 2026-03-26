@@ -5,6 +5,8 @@ import { FileUploadPage } from "./pages/UploadPage";
 import { ChatPage } from "./pages/ChatPage";
 import ScreeningPage from "./pages/PictureScreening/PictureScreening";
 import { MainLayout } from "./pages/Layout";
+import PictureScreeningProcessList from "./components/PictureScreeningSettings/PictureScreeningSettings";
+import ProcessSettingsForm from "./components/PictureScreeningSettings/ProcessSettingsForm";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
@@ -38,6 +40,8 @@ function App() {
             path="/upload/:defaultfiletype?"
             element={<PrivateRoute><FileUploadPage /></PrivateRoute>}
           />
+          <Route path="/process/:processId" element={<PrivateRoute><ProcessSettingsForm /></PrivateRoute>} />
+          <Route path="/process" element={<PrivateRoute><PictureScreeningProcessList /></PrivateRoute>} />
           <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

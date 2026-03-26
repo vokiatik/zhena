@@ -1,9 +1,9 @@
 from requests import Session
 from fastapi import APIRouter, Depends, Form, HTTPException
 
-from sweater.models.Retail_model import Retail
+from sweater.models.retail.Retail_model import Retail
 from sweater.schemas.fileUpload.file_upload_shcema import UploadResponse
-from backend.sweater.database.base_db import get_db
+from sweater.database.base_db import get_db
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
