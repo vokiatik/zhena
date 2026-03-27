@@ -76,18 +76,31 @@ export default function PictureScreeningProcessList() {
         );
     }
 
-
+    const handleDeleteProcess = async (processId: string) => {
+        const res = await DeleteProcess(processId);
+        if (res.success) {
+            showToast(`Process deleted successfully`, "success");
+        } else {
+            showToast(`Failed to delete process: ${res.error}`, "error");
+        }
+    };
     return (
         <div className="picture-screening-process-list">
             <h1 className="picture-screening-process-list__title">Picture Screening Process List</h1>
             {processList?.map((process: ProcessingItem) => (
-                <div
-                    key={process.id} className="picture-screening-process-list__item"
-                    onMouseDown={() => navigate(`/process/${process.id}`)}
-                >
-                    <span className="picture-screening-process-list__item-title">{process.title}</span>
+                <div key={process.id} className="picture-screening-process-list__item-container">
+                    <div
+                        className="picture-screening-process-list__item"
+                        onMouseDown={() => navigate(`/process/${process.id}`)}
+                    >
+                        <span
+                            className="picture-screening-process-list__item-title"
+                        >
+                            {process.title}
+                        </span>
+                    </div>
                     <button
-                        onClick={() => DeleteProcess(process.id)}
+                        onClick={() => handleDeleteProcess(process.id)}
                         className="picture-screening-process-list__delete-btn"
                     >
                         Delete Process

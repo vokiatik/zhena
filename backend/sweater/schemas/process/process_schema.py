@@ -4,4 +4,7 @@ class UpdateProcess(BaseModel):
     id: str
     title: str
     description: str
-    created_at: str
+
+class CreateProcess(BaseModel):
+    title: str
+    description: str

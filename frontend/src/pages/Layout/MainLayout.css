@@ -11,6 +11,7 @@
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
 }
 .main-layout__header {
   padding: 16px 24px;
@@ -23,5 +24,21 @@
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  background-color: #111;
 }   
+
+.layout__content {
+  flex: 1;
+  overflow-y: auto;
+  width: 90%;
+  background-color: #111;
+}
+
+.layout__sidebar {
+  width: 250px;
+  background-color: #111;
+  color: #fff;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  width: 10%;
+}
 

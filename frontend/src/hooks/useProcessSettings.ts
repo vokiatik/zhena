@@ -9,7 +9,7 @@ type ProcessSettingsResult = {
 };
 
 export function useProcessSettings() {
-    const { get, post } = useApi();
+    const { get, post, del } = useApi();
 
     const [processId, setProcessId] = useState<string>("");
 
@@ -62,13 +62,14 @@ export function useProcessSettings() {
     const DeleteProcess = useCallback(
         async (processId: string) => {
             try {
-                const response = await post<ProcessSettingsResult>(`/process/delete`, { id: processId });
+                const response = await del<ProcessSettingsResult>(`/process/delete/${processId}`);
+                refetchProcessList();
                 return response.data;
             } catch (error) {
                 return { success: false, error: (error as Error).message };
             }
         },
-        [post]
+        [del]
     );
 
     const { data: processList, isPending: isProcessListPending, error: ProcessListError, refetch: refetchProcessList } = useQuery({

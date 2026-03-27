@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.params import Depends
 from requests import Session
 
-from sweater.schemas.process.process_schema import UpdateProcess
+from sweater.schemas.process.process_schema import CreateProcess, UpdateProcess
 from sweater.services.process.process_service import get_list_of_processes, get_process_by_id, create_process_, delete_process_, update_process_
 from sweater.database.base_db import get_db
 from sweater.database.references_db import get_reference_db
@@ -23,8 +23,10 @@ def get_process(process_id: str, db: Session = Depends(get_reference_db)):
         return {"success": False, "error": "Process not found"}
     
 @router.post("/create")
-def create_process(title:str, description: str, db: Session = Depends(get_reference_db)):
-    new_process = create_process_(db, title, description, responsible_user_id=None)
+def create_process(v: CreateProcess, db: Session = Depends(get_reference_db)):
+    if not v.title or not v.description:
+        return {"success": False, "error": "Title and description are required"}
+    new_process = create_process_(db, v)
     return {"success": True, "data": new_process}
 
 @router.delete("/delete/{process_id}")
@@ -37,7 +39,7 @@ def delete_process(process_id: str, db: Session = Depends(get_reference_db)):
     
 @router.put("/update/{process_id}")
 def update_process(process_id: str, updated_process: UpdateProcess, db: Session = Depends(get_reference_db)):
-    process = update_process_(db, process_id, title=updated_process.title, description=updated_process.description, responsible_user_id=None)
+    process = update_process_(db, process_id, updated_process)
     if process:
         return {"success": True, "data": process}
     else:

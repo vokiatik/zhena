@@ -8,7 +8,9 @@ export default function MainLayout() {
       <main className="layout__content">
         <Outlet />
       </main>
-      <MenuSidebar />
+      <div className="layout__sidebar">
+        <MenuSidebar />
+      </div>
     </div>
   );
 }

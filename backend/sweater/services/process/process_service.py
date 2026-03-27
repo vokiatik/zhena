@@ -1,8 +1,10 @@
 
+from time import time
+
 from requests import Session
 
 from sweater.models.picture_processing.Picture_processing_model import PictureProcessing
-from sweater.schemas.process.process_schema import UpdateProcess
+from sweater.schemas.process.process_schema import CreateProcess, UpdateProcess
 
 def get_list_of_processes(db: Session,):
     processes = db.query(PictureProcessing).all()
@@ -12,11 +14,10 @@ def get_process_by_id(db: Session, process_id):
     process = db.query(PictureProcessing).filter(PictureProcessing.id == process_id).first()
     return process
 
-def create_process_(db: Session, v: UpdateProcess, responsible_user_id=None):
+def create_process_(db: Session, v: CreateProcess):
     new_process = PictureProcessing(
         title=v.title,
         description=v.description,
-        responsible_user_id=responsible_user_id
     )
     db.add(new_process)
     db.commit()
