@@ -81,6 +81,26 @@ _MIGRATIONS = [
         verified   BOOLEAN      NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
     );""",
+
+    """CREATE TABLE IF NOT EXISTS roles (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name       TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );""",
+
+    """CREATE TABLE IF NOT EXISTS user_roles (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        role_id     UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+        assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE(user_id, role_id)
+    );""",
+
+    "CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);",
+
+    """INSERT INTO roles (name) VALUES ('admin') ON CONFLICT (name) DO NOTHING;""",
+    """INSERT INTO roles (name) VALUES ('analyst') ON CONFLICT (name) DO NOTHING;""",
+    """INSERT INTO roles (name) VALUES ('marketing_specialist') ON CONFLICT (name) DO NOTHING;""",
 ]
 
 

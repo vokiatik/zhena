@@ -1,3 +1,5 @@
+import "./customSwitch.css"
+
 interface CustomSwitchProps {
     label?: string;
     checked: boolean;
@@ -7,10 +9,12 @@ interface CustomSwitchProps {
 
 export default function CustomSwitch({ label, checked, disabled, onChange }: CustomSwitchProps) {
     return (
-        <label className="switch">
+        <div className="custom-switch-container">
             {label && <span className="switch-label">{label}</span>}
-            <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
-            <span className="slider round"></span>
-        </label>
+            <label className="switch">
+                <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+                <span className="slider round"></span>
+            </label>
+        </div>
     );
 }

@@ -5,6 +5,7 @@ import apiClient from "../api/client";
 interface User {
   id: string;
   email: string;
+  roles: string[];
 }
 
 interface UserContextValue {
@@ -17,6 +18,8 @@ interface UserContextValue {
   confirmEmail: (token: string) => Promise<string>;
   forgotPassword: (email: string) => Promise<string>;
   resetPassword: (token: string, password: string) => Promise<string>;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (...roles: string[]) => boolean;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);
@@ -76,9 +79,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return (res.data as { message: string }).message;
   }, []);
 
+  const hasRole = useCallback((role: string): boolean => {
+    if (!user) return false;
+    if (user.roles.includes("admin")) return true;
+    return user.roles.includes(role);
+  }, [user]);
+
+  const hasAnyRole = useCallback((...roles: string[]): boolean => {
+    if (!user) return false;
+    if (user.roles.includes("admin")) return true;
+    return roles.some((role) => user.roles.includes(role));
+  }, [user]);
+
   return (
     <UserContext.Provider
-      value={{ user, token, isLoading, login, register, logout, confirmEmail, forgotPassword, resetPassword }}
+      value={{ user, token, isLoading, login, register, logout, confirmEmail, forgotPassword, resetPassword, hasRole, hasAnyRole }}
     >
       {children}
     </UserContext.Provider>

@@ -1,65 +1,65 @@
-from requests import Session
+from sqlalchemy.orm import Session
 
-from sweater.schemas.process.attribute_schema import Attribute, ProcessAttribute
-from sweater.models.picture_processing.Picture_attribute_reference_crosstable_model import PictureAttributeReferenceCrosstable
+from sweater.schemas.process.attribute_schema import CreateProcessAttribute, UpdateProcessAttribute
 from sweater.models.picture_processing.Process_attributes_crosstable_model import ProcessAttributes
+from sweater.models.retail.Retail_model import Retail
 
-def get_process_attributes_by_process_id(db: Session, process_id):
-    attributes = db.query(ProcessAttributes).filter(ProcessAttributes.process_id == process_id).all()
-    
-    for attribute in attributes:
-        reference = db.query(PictureAttributeReferenceCrosstable).filter(PictureAttributeReferenceCrosstable.process_id == process_id, PictureAttributeReferenceCrosstable.picture_attribute_id == attribute.id).first()
-        if reference:
-            attribute.reference_value_presetting_type = reference.reference_value_presetting_type
-    return attributes
+# Registry of available tables — add new models here as they're created
+TABLE_REGISTRY = {
+    "retail": Retail,
+}
 
-def create_process_attribute(db: Session, process_id: str, attribute: ProcessAttribute):
+EXCLUDED_COLUMNS = {"id", "verified", "created_at"}
+
+def get_available_tables():
+    return list(TABLE_REGISTRY.keys())
+
+def get_table_columns(table_name: str):
+    model = TABLE_REGISTRY.get(table_name)
+    if not model:
+        return []
+    return [col.name for col in model.__table__.columns if col.name not in EXCLUDED_COLUMNS]
+
+def get_process_attributes_by_process_id(db: Session, process_id: str):
+    return db.query(ProcessAttributes).filter(ProcessAttributes.process_id == process_id).all()
+
+def create_process_attribute_(db: Session, attribute: CreateProcessAttribute):
     new_attribute = ProcessAttributes(
-        process_id=process_id,
+        process_id=attribute.process_id,
         title=attribute.title,
         is_shown=attribute.is_shown,
-        is_editable=attribute.is_editable
+        is_editable=attribute.is_editable,
+        reference_type_id=attribute.reference_type_id,
     )
     db.add(new_attribute)
     db.commit()
     db.refresh(new_attribute)
     return new_attribute
 
-def delete_process_attribute(db: Session, process_id, attribute_id):
-    attribute = db.query(ProcessAttributes).filter(ProcessAttributes.id == attribute_id, ProcessAttributes.process_id == process_id).first()
+def delete_process_attribute_(db: Session, process_id: str, attribute_id: str):
+    attribute = db.query(ProcessAttributes).filter(
+        ProcessAttributes.id == attribute_id,
+        ProcessAttributes.process_id == process_id,
+    ).first()
     if not attribute:
         return None
     db.delete(attribute)
     db.commit()
     return attribute
 
-def update_process_attribute(db: Session, process_id: str, attribute: Attribute):
-    attribute_id = attribute.id
-    attribute = db.query(ProcessAttributes).filter(ProcessAttributes.id == attribute_id, ProcessAttributes.process_id == process_id).first()
-    if attribute:
-        attribute.reference_value = attribute.reference_value
-        attribute.reference_value_presetting_type_id = attribute.reference_value_presetting_type_id
-        db.commit()
-        db.refresh(attribute)
-        return attribute
-    return None
-
-def create_process_attribute_reference_cross(db: Session, process_id: str, picture_attribute_id: str, reference_value_presetting_type_id: str):
-    cross = PictureAttributeReferenceCrosstable(
-        process_id=process_id,
-        picture_attribute_id=picture_attribute_id,
-        reference_value_presetting_type_id=reference_value_presetting_type_id
-    )
-    db.add(cross)
+def update_process_attribute_(db: Session, process_id: str, attr: UpdateProcessAttribute):
+    db_attr = db.query(ProcessAttributes).filter(
+        ProcessAttributes.id == attr.id,
+        ProcessAttributes.process_id == process_id,
+    ).first()
+    if not db_attr:
+        return None
+    if attr.is_shown is not None:
+        db_attr.is_shown = attr.is_shown
+    if attr.is_editable is not None:
+        db_attr.is_editable = attr.is_editable
+    if attr.reference_type_id is not None:
+        db_attr.reference_type_id = attr.reference_type_id if attr.reference_type_id != "" else None
     db.commit()
-    db.refresh(cross)
-    return cross
-
-def update_process_attribute_reference_cross(db: Session, process_id: str, picture_attribute_id: str, reference_value_presetting_type_id: str):
-    reference = db.query(PictureAttributeReferenceCrosstable).filter(PictureAttributeReferenceCrosstable.process_id == process_id, PictureAttributeReferenceCrosstable.picture_attribute_id == picture_attribute_id).first()
-    if reference:
-        reference.reference_value_presetting_type_id = reference_value_presetting_type_id
-        db.commit()
-        db.refresh(reference)
-        return reference
-    return None
+    db.refresh(db_attr)
+    return db_attr

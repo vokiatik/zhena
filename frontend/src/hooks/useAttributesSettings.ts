@@ -1,127 +1,105 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "../api";
-import type { PictureAttributes } from "../types/picture_attributes";
+import type { PictureAttribute } from "../types/picture_attributes";
+import { useToast } from "../contexts/ToastContext";
+import type { referenceListType } from "../types/ref_list";
 
-export function useAttributesSettings() {
-    const { get, post } = useApi();
+type AttributeSettingsResult = {
+    success: boolean;
+    data?: any;
+    error?: string;
+};
 
-    const [processId, setProcessId] = useState<string | null>(null);
-    
-    const getAttributes = useCallback(
+export function useAttributesSettings(tableName?: string, processId?: string) {
+    const { get, post, put, del } = useApi();
+    const { showToast } = useToast();
+
+    const getTableColumns = useCallback(
         async () => {
-        const response = await get<string[]>(`/process/attributes/list`);
-        return response.data;
-    }, [get]);
+            if (!tableName) return [];
+            const response = await get<string[]>(`/process/attributes/list?table_name=${tableName}`);
+            return response.data;
+        }, [get, tableName]);
 
     const getProcessAttributes = useCallback(
-        async (processId: string) => {
-        const response = await get<PictureAttributes[]>(`/process/attributes/${processId}`);
-        return response.data;
-    }, [get]);
+        async () => {
+            if (!processId) return [];
+            const response = await get<PictureAttribute[]>(`/process/attributes/${processId}`);
+            return response.data;
+        }, [get, processId]);
 
     const getProcessAttributesReferenceList = useCallback(
         async () => {
-        const response = await get<string[]>(`/process/attributes/reference/types_list`);
-        return response.data;
-    }, [get]);
-    
+            const response = await get<referenceListType[]>(`/process/attributes/reference/types_list`);
+            return response.data;
+        }, [get]);
+
     const AddNewProcessAttribute = useCallback(
-        async (processId: string, attribute: PictureAttributes) => {
-            await post(`/process/attributes/create`, { process_id: processId, attribute: attribute });
-            await getProcessAttributes(processId);
+        async (attribute: PictureAttribute) => {
+            await post(`/process/attributes/create`, attribute);
+            refetchProcessAttributes();
         },
-        [post, getProcessAttributes]
+        [post]
     );
+
     const UpdateProcessAttribute = useCallback(
-        async (processId: string, attribute: PictureAttributes) => {
-            await post(`/process/attributes/update/${processId}`, { attribute: attribute });
-            await getProcessAttributes(processId);
+        async (attribute: PictureAttribute) => {
+            await put(`/process/attributes/update/${attribute.process_id}`, attribute);
+            refetchProcessAttributes();
         },
-        [post, getProcessAttributes]
+        [put]
     );
 
     const DeleteProcessAttribute = useCallback(
         async (processId: string, attributeId: string) => {
-            await post(`/process/attributes/delete/${processId}/${attributeId}`);
-            await getProcessAttributes(processId);
+            await del(`/process/attributes/delete/${processId}/${attributeId}`);
+            refetchProcessAttributes();
         },
-        [post, getProcessAttributes]
+        [del]
     );
 
     const CreateNewAttributeReferenceType = useCallback(
         async (referenceType: string) => {
-            await post(`/process/attributes/reference/create_type`, {
-                reference_value_presetting_type: referenceType
-            });
-            refetchReferenceList();
+            const res = await post<AttributeSettingsResult>(`/process/attributes/reference/create_type?reference_type=${referenceType}`);
+            if (res.data.success) {
+                refetchReferenceList();
+            } else {
+                showToast(`Failed to create new reference type: ${res.data.error}`);
+            }
         },
-        [post, getProcessAttributes]
-    );
-    // const GetListOfPresettingValues = useCallback(
-    //     async (referenceType: string) => {
-    //         const response = await get<string[]>(`/process/attributes/presetting_values/${referenceType}`);
-    //         return response.data;
-    //     },
-    //     [get]
-    // );
-    // const AddNewPresettingValue = useCallback(
-    //     async (referenceType: string, referenceValue: string) => {
-    //         await post(`/process/attributes/create_presetting_value`, {
-    //             reference_value_presetting_type: referenceType,
-    //             reference_value: referenceValue
-    //         });
-    //     },
-    //     [post, getProcessAttributes]
-    // );
-
-    const CreateNewAttributeReference = useCallback(
-        async (processId: string, attributeId: string, referenceType: string) => {
-            await post(`/process/attributes/create_presetting_value`, {
-                process_id: processId,
-                picture_attribute_id: attributeId,
-                reference_value_presetting_type: referenceType
-            });
-            await getProcessAttributes(processId);
-        },
-        [post, getProcessAttributes]
+        [post]
     );
 
-
-    const { data: attributes, isPending: isAttributesPending, error: attributesError } = useQuery({
-        queryKey: ['attributes_list'],
-        queryFn: getAttributes,
+    const { data: tableColumns, isPending: isTableColumnsPending, error: tableColumnsError } = useQuery({
+        queryKey: ['table_columns', tableName],
+        queryFn: getTableColumns,
+        enabled: !!tableName,
     })
+
+    const { data: processAttributes, isPending: isProcessAttributesPending, refetch: refetchProcessAttributes } = useQuery({
+        queryKey: ['process_attributes', processId],
+        queryFn: getProcessAttributes,
+        enabled: !!processId,
+    })
+
     const { data: referenceList, isPending: isReferenceListPending, error: referenceListError, refetch: refetchReferenceList } = useQuery({
         queryKey: ['reference_list'],
         queryFn: getProcessAttributesReferenceList,
     })
 
-    const { data: processAttributes, refetch: refetchProcessAttributes, isPending: isProcessAttributesPending, error: processAttributesError } = useQuery({
-        queryKey: ['process_attributes_list', processId],
-        queryFn: () => {
-            if (!processId) throw new Error("processId is null");
-            return getProcessAttributes(processId);
-        },
-        enabled: !!processId,
-    })
-
-  return { 
-    attributes,
-    isAttributesPending,
-    attributesError,
-    referenceList,
-    isReferenceListPending,
-    referenceListError,
-    processAttributes,
-    isProcessAttributesPending,
-    processAttributesError,
-    CreateNewAttributeReference,
-    setProcessId,
-    refetchProcessAttributes,
-    AddNewProcessAttribute,
-    UpdateProcessAttribute,
-    DeleteProcessAttribute,
-    CreateNewAttributeReferenceType
-};
+    return {
+        tableColumns,
+        isTableColumnsPending,
+        tableColumnsError,
+        processAttributes,
+        isProcessAttributesPending,
+        referenceList,
+        isReferenceListPending,
+        referenceListError,
+        AddNewProcessAttribute,
+        UpdateProcessAttribute,
+        DeleteProcessAttribute,
+        CreateNewAttributeReferenceType
+    };
 }

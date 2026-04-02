@@ -51,8 +51,27 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-.switch-container {
+.select-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+}
+
+.custom-switch-container{
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 200px;
+    height: 40px;
+    justify-content: space-between;
+}
+
+.switch-label {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    margin-right: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

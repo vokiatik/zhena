@@ -18,6 +18,7 @@ from sweater.models.chat.Chat_model import Chat
 from sweater.models.chat.Message_model import Message
 from sweater.models.auth.Email_confirmations_model import EmailConfirmation
 from sweater.models.auth.Password_reset_model import PasswordReset
+from sweater.models.auth.Role_model import RoleModel, UserRoleModel
 from sweater.models.chat.Processing_status_model import ProcessingStatus
 
 load_dotenv()

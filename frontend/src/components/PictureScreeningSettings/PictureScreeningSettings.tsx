@@ -1,10 +1,13 @@
-import { useProcessSettings } from "../../hooks/useProcessSettings";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./PictureScreeningSettings.css";
-import TvLoading from "../shared/loading/TvLoading";
-import type { ProcessingItem } from "../../types/processing";
+import { useState } from "react";
+
 import { useToast } from "../../contexts/ToastContext";
+import { useProcessSettings } from "../../hooks/useProcessSettings";
+import type { ProcessingItem } from "../../types/processing";
+
+import TvLoading from "../shared/loading/TvLoading";
+
+import ProcessSettingsForm from "./ProcessSettingsForm";
 
 export default function PictureScreeningProcessList() {
     const {
@@ -12,69 +15,18 @@ export default function PictureScreeningProcessList() {
         isProcessListPending,
         ProcessListError,
         CreateProcess,
-        DeleteProcess,
-        refetchProcessList
+        DeleteProcess
     } = useProcessSettings();
 
     const {
         showToast
     } = useToast();
 
+    const [currentProcess, setCurrentProcess] = useState<ProcessingItem | null>(null);
     const [showNewProcessModal, setShowNewProcessModal] = useState(false);
-
-    const navigate = useNavigate();
 
     if (isProcessListPending) return <TvLoading />;
     if (ProcessListError) return <div>Error loading processs: {ProcessListError.message}</div>;
-
-    const NewProcessModal = () => {
-        const [name, setName] = useState("");
-        const [description, setDescription] = useState("");
-
-        const handleSave = async () => {
-            const res = await CreateProcess({ title: name, description: description });
-            if (res.success) {
-                showToast(`Process created successfully: ${res.data.id}`, "success");
-                refetchProcessList();
-                setShowNewProcessModal(false);
-            } else {
-                showToast(`Failed to create process: ${res.error}`, "error");
-            }
-
-        };
-
-        return (
-            <div className="modal-overlay">
-                <div className="modal">
-                    <div className="modal-header">
-                        <h2 className="modal-title">Create New Process</h2>
-                        <button className="modal-close" onClick={() => setShowNewProcessModal(false)}>X</button>
-                    </div>
-
-                    <div className="modal-body">
-                        <div className="modal-inputs">
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Process Name"
-                            />
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Process Description"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="modal-footer">
-                        <button onClick={handleSave}>Create</button>
-                        <button onClick={() => setShowNewProcessModal(false)}>Cancel</button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     const handleDeleteProcess = async (processId: string) => {
         const res = await DeleteProcess(processId);
@@ -91,29 +43,52 @@ export default function PictureScreeningProcessList() {
                 <div key={process.id} className="picture-screening-process-list__item-container">
                     <div
                         className="picture-screening-process-list__item"
-                        onMouseDown={() => navigate(`/process/${process.id}`)}
                     >
                         <span
                             className="picture-screening-process-list__item-title"
                         >
                             {process.title}
                         </span>
+                        <span className="picture-screening-process-list__item-description">
+                            {process.description}
+                        </span>
                     </div>
-                    <button
-                        onClick={() => handleDeleteProcess(process.id)}
-                        className="picture-screening-process-list__delete-btn"
-                    >
-                        Delete Process
-                    </button>
+                    <div className="picture-screening-process-list__item-actions">
+                        <button
+                            onClick={() => {
+                                setCurrentProcess(process);
+                                setShowNewProcessModal(true);
+                            }}
+                            className="button-primary"
+                            style={{ marginInlineStart: "8px" }}
+                        >
+                            Edit Process
+                        </button>
+                        <button
+                            onClick={() => handleDeleteProcess(process.id)}
+                            className="button-danger"
+                            style={{ marginInline: "8px" }}
+                        >
+                            Delete Process
+                        </button>
+                    </div>
                 </div>
             ))}
             <button
-                onClick={() => setShowNewProcessModal(true)}
-                className="picture-screening-process-list__add-btn"
+                onClick={() => {
+                    setCurrentProcess(null);
+                    setShowNewProcessModal(true);
+                }}
+                className="button-secondary"
             >
                 Add New Process
             </button>
-            {showNewProcessModal && <NewProcessModal />}
+            {showNewProcessModal &&
+                <ProcessSettingsForm
+                    ProcessItem={currentProcess}
+                    setShowNewProcessModal={setShowNewProcessModal}
+                    CreateProcess={CreateProcess}
+                />}
         </div>
     );
 }

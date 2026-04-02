@@ -15,6 +15,7 @@ from sweater.schemas.auth.Email_confirmation_schema import ConfirmEmailRequest, 
 from sweater.services.auth.email_confirmation_service import create_email_confirmation, delete_email_confirmation_by_token, get_email_confirmation_by_token
 from sweater.services.auth.password_reset_service import create_password_reset, delete_password_reset_by_token, delete_password_resets_by_user_id, get_password_reset_by_token
 from sweater.services.auth.user_service import create_user, get_user_by_email, update_user
+from sweater.services.auth.role_service import get_user_roles, seed_default_roles, assign_role_to_user, get_role_by_name
 from sweater.email_sender import send_confirmation_email, send_password_reset_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -32,10 +33,11 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
-def create_jwt(user_id: str, email: str) -> str:
+def create_jwt(user_id: str, email: str, roles: list[str] | None = None) -> str:
     payload = {
         "sub": user_id,
         "email": email,
+        "roles": roles or [],
         "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRE_HOURS),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -57,7 +59,7 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Not authenticated")
     token = auth_header.split(" ", 1)[1]
     payload = decode_jwt(token)
-    return {"id": payload["sub"], "email": payload["email"]}
+    return {"id": payload["sub"], "email": payload["email"], "roles": payload.get("roles", [])}
 
 
 # ── Routes ───────────────────────────────────────────────────────────
@@ -123,8 +125,9 @@ async def login(
     if not user.is_confirmed:
         raise HTTPException(status_code=403, detail="Please confirm your email before logging in")
 
-    token = create_jwt(str(user.id), user.email)
-    return {"token": token, "user": {"id": str(user.id), "email": user.email}}
+    roles = get_user_roles(db, user.id)
+    token = create_jwt(str(user.id), user.email, roles)
+    return {"token": token, "user": {"id": str(user.id), "email": user.email, "roles": roles}}
 
 
 @router.post("/forgot-password")
@@ -172,5 +175,9 @@ async def reset_password(
 
 
 @router.get("/me")
-async def me(user: dict = Depends(get_current_user)):
-    return {"id": user["id"], "email": user["email"]}
+async def me(
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    roles = get_user_roles(db, user["id"])
+    return {"id": user["id"], "email": user["email"], "roles": roles}

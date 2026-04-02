@@ -8,6 +8,10 @@ from sweater.routes.file_uploading import router as upload_router
 from sweater.routes.process.process import router as process_router
 from sweater.routes.process.attribute import router as attribute_router
 from sweater.routes.process.reference import router as reference_router
+from sweater.routes.roles import router as roles_router
+
+from sweater.database.base_db import SessionLocal
+from sweater.services.auth.role_service import seed_default_roles
 
 
 
@@ -30,6 +34,16 @@ app.include_router(upload_router)
 app.include_router(process_router)
 app.include_router(attribute_router)
 app.include_router(reference_router)
+app.include_router(roles_router)
+
+
+@app.on_event("startup")
+def on_startup():
+    db = SessionLocal()
+    try:
+        seed_default_roles(db)
+    finally:
+        db.close()
 
 
 

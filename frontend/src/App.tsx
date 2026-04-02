@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useUser } from "./contexts";
-import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ConfirmEmailPage } from "./components/Auth";
+import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ConfirmEmailPage, RoleGuard } from "./components/Auth";
 import { FileUploadPage } from "./pages/UploadPage";
 import { ChatPage } from "./pages/ChatPage";
 import ScreeningPage from "./pages/PictureScreening/PictureScreening";
 import { MainLayout } from "./pages/Layout";
 import PictureScreeningProcessList from "./components/PictureScreeningSettings/PictureScreeningSettings";
 import ProcessSettingsForm from "./components/PictureScreeningSettings/ProcessSettingsForm";
+import "./assets/styles/Global.css";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
@@ -21,8 +22,6 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  // Layout wraps all main pages for navigation
-  // Auth pages remain unwrapped
   return (
     <BrowserRouter>
       <Routes>
@@ -34,15 +33,44 @@ function App() {
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
           <Route
             path="/screening/:role"
-            element={<PrivateRoute><ScreeningPage /></PrivateRoute>}
+            element={
+              <RoleGuard allowedRoles={["admin", "marketing_specialist", "analyst"]}>
+                <ScreeningPage />
+              </RoleGuard>
+            }
           />
           <Route
             path="/upload/:defaultfiletype?"
-            element={<PrivateRoute><FileUploadPage /></PrivateRoute>}
+            element={
+              <RoleGuard allowedRoles={["admin", "marketing_specialist"]}>
+                <FileUploadPage />
+              </RoleGuard>
+            }
           />
-          <Route path="/process/:processId" element={<PrivateRoute><ProcessSettingsForm /></PrivateRoute>} />
-          <Route path="/process" element={<PrivateRoute><PictureScreeningProcessList /></PrivateRoute>} />
-          <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+          <Route
+            path="/process/:processId"
+            element={
+              <RoleGuard allowedRoles={["admin"]}>
+                <ProcessSettingsForm />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/process"
+            element={
+              <RoleGuard allowedRoles={["admin"]}>
+                <PictureScreeningProcessList />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <ChatPage />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -1,77 +1,77 @@
-import { useState } from "react";
-import type { PictureAttributes } from "../../types/picture_attributes";
-import AttributeView from "./AttributeView";
-import { useAttributesSettings } from "../../hooks/useAttributesSettings";
 import "./PictureScreeningSettings.css";
+import { useState } from "react";
+import { useAttributesSettings } from "../../hooks/useAttributesSettings";
+import type { ProcessingItem } from "../../types/processing";
+import type { ProcessSettingsResult } from "../../types/ProcessSettingsResult";
+import AttributeView from "./AttributeView";
 
 interface AttributeSettingsFormProps {
-    processId: string | null;
-    attributeList: PictureAttributes[] | null;
+    curentProcess?: ProcessingItem;
+    handleSaveNewProcess?: () => Promise<ProcessSettingsResult>;
 }
-export default function AttributeSettingsForm(
-    {
-        processId,
-        attributeList
-    }: AttributeSettingsFormProps) {
-
+export default function AttributeSettingsForm({
+    curentProcess,
+    handleSaveNewProcess
+}: AttributeSettingsFormProps) {
     const {
+        tableColumns,
         referenceList,
+        processAttributes,
         AddNewProcessAttribute,
         DeleteProcessAttribute,
         UpdateProcessAttribute,
         CreateNewAttributeReferenceType
-    } = useAttributesSettings();
+    } = useAttributesSettings(curentProcess?.table_name, curentProcess?.id);
 
-    const [newAttribute, setNewAttribute] = useState<PictureAttributes>({
-        id: "",
-        process_id: "",
-        title: "",
-        is_shown: true,
-        is_editable: true,
-        reference_value_presetting_type: undefined,
-        created_at: new Date().toISOString(),
-    });
+    const [showAttributeView, setShowAttributeView] = useState(false);
 
-    const handleUpdateNewAttribute = async (processId: string, attribute: PictureAttributes) => {
-        console.log("Updating new attribute:", processId, attribute);
-        setNewAttribute(attribute);
+    const handleAddNewAttribute = async () => {
+        if (!curentProcess?.id && handleSaveNewProcess) {
+            const res = await handleSaveNewProcess();
+            if (res?.success) {
+                setShowAttributeView(true);
+            }
+        } else {
+            setShowAttributeView(!showAttributeView);
+        }
     }
-
     return (
         <div className="attribute-settings-form">
             <h2 className="attribute-settings-header">Attribute Settings</h2>
             <div className="attribute-item">
-                <AttributeView
-                    attribute={newAttribute}
-                    referenceList={referenceList}
-                    CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
-                    UpdateProcessAttribute={handleUpdateNewAttribute}
-                />
+                {showAttributeView && (
+                    <AttributeView
+                        tableColumns={tableColumns}
+                        referenceList={referenceList}
+                        curentProcessId={curentProcess?.id}
+                        AddNewProcessAttribute={AddNewProcessAttribute}
+                        UpdateProcessAttribute={UpdateProcessAttribute}
+                        CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
+                        setShowAttributeView={setShowAttributeView}
+                        DeleteProcessAttribute={DeleteProcessAttribute}
+                    />
+                )}
                 <button
-                    onClick={
-                        () => AddNewProcessAttribute(processId!, newAttribute)
-                    }
-                    className="attribute-add-btn"
+                    onClick={() => handleAddNewAttribute()}
+                    className="button-primary"
+                    disabled={!curentProcess}
                 >
-                    Add Attribute
+                    {showAttributeView ? "Cancel" : "Add Attribute"}
                 </button>
+                <label className="attribute-add-btn-note">*You need to save the process before adding attributes</label>
             </div>
-            {attributeList?.map((attribute) => (
+            {processAttributes?.map((attribute) => (
                 <div key={attribute.id} className="attribute-item">
                     <AttributeView
                         attribute={attribute}
+                        tableColumns={tableColumns}
                         referenceList={referenceList}
-                        CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
+                        AddNewProcessAttribute={AddNewProcessAttribute}
                         UpdateProcessAttribute={UpdateProcessAttribute}
+                        CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
+                        setShowAttributeView={setShowAttributeView}
+                        DeleteProcessAttribute={DeleteProcessAttribute}
                     />
-                    <button
-                        onClick={
-                            () => DeleteProcessAttribute(attribute.process_id, attribute.id)
-                        }
-                        className="attribute-delete-btn"
-                    >
-                        Delete Attribute
-                    </button>
                 </div>
             ))}
         </div>

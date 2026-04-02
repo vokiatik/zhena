@@ -1,46 +1,80 @@
 import { useProcessSettings } from "../../hooks/useProcessSettings";
-import { useParams } from "react-router-dom";
 import AttributeSettingsForm from "./AttributeSettingForm";
 import "./PictureScreeningSettings.css";
+import type { ProcessingItem } from "../../types/processing";
+import CustomModal from "../shared/modal/CustomModal";
+import CustomDropdown from "../shared/dropdown/CustomDropdown";
+import { useState } from "react";
+import type { ProcessSettingsResult } from "../../types/ProcessSettingsResult";
 
-export default function ProcessSettingsForm() {
+interface ProcessSettingsFormProps {
+    ProcessItem: ProcessingItem | null;
+    setShowNewProcessModal: (show: boolean) => void;
+    CreateProcess: (process: ProcessingItem) => Promise<ProcessSettingsResult>;
+}
 
-    const { processId } = useParams();
+export default function ProcessSettingsForm({ ProcessItem, setShowNewProcessModal, CreateProcess }: ProcessSettingsFormProps) {
     const {
-        process,
-        isprocessPending,
-        processError,
-        UpdateProcess
+        UpdateProcess,
+        availableTables,
     } = useProcessSettings();
 
-    if (isprocessPending) return <div>Loading...</div>;
-    if (processError) return <div>Error loading processs: {processError.message}</div>;
+    const [currentProcess, setCurrentProcess] = useState<ProcessingItem>(ProcessItem ||
+        {
+            id: "",
+            title: "",
+            description: "",
+            table_name: "retail",
+            created_at: new Date().toISOString(),
+            attributes: []
+        } as ProcessingItem
+    );
+
+    const handleSave = () => {
+        let res = null;
+        if (ProcessItem) {
+            res = UpdateProcess(currentProcess);
+        } else {
+            res = CreateProcess(currentProcess);
+        }
+        setShowNewProcessModal(false);
+        return res;
+    };
 
     return (
-        <div className="process-settings-form">
-            <h2 className="process-settings-header">Process Settings</h2>
-            <div className="process-settings-item">
-                <label className="process-settings-label">Title:</label>
-                <input
-                    type="text"
-                    value={process?.title || ""}
-                    onChange={(e) => UpdateProcess(processId || "", { title: e.target.value, description: process?.description || "" })}
-                    className="process-settings-input"
-                />
-            </div>
-            <div className="process-settings-item">
-                <label className="process-settings-label">Description:</label>
-                <textarea
-                    value={process?.description || ""}
-                    onChange={(e) => UpdateProcess(processId || "", { title: process?.title || "", description: e.target.value })}
-                    className="process-settings-textarea"
-                />
-            </div>
-            <AttributeSettingsForm
-                processId={processId || ""}
-                attributeList={process?.attributes || []}
-            />
-        </div>
+        <CustomModal
+            modalTitle={ProcessItem ? "Edit Process" : "Create New Process"}
+            SaveButtonName={ProcessItem ? "Update" : "Create"}
+            handleSave={handleSave}
+            handleClose={() => setShowNewProcessModal(false)}
+            children={
+                <div className="modal-inputs">
+                    <CustomDropdown
+                        label="Table"
+                        options={availableTables?.map((t: string) => ({ value: t, label: t })) || []}
+                        defaultValue={currentProcess.table_name}
+                        onChange={(value) => setCurrentProcess({ ...currentProcess, table_name: value })}
+                    />
+                    <input
+                        type="text"
+                        value={currentProcess?.title || ""}
+                        onChange={(e) => setCurrentProcess({ ...currentProcess, title: e.target.value } as ProcessingItem)}
+                        placeholder="Process Name"
+                        className="modal-input"
+                    />
+                    <textarea
+                        value={currentProcess?.description || ""}
+                        onChange={(e) => setCurrentProcess({ ...currentProcess, description: e.target.value } as ProcessingItem)}
+                        placeholder="Process Description"
+                        className="modal-input"
+                    />
 
+                    <AttributeSettingsForm
+                        curentProcess={currentProcess}
+                        handleSaveNewProcess={handleSave}
+                    />
+                </div>
+            }
+        />
     );
 }

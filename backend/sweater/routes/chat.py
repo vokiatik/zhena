@@ -25,6 +25,7 @@ from sweater.query_analisys_tools.clarification import (
     build_clarification_message,
 )
 from sweater.routes.auth import get_current_user, decode_jwt
+from sweater.middleware.role_middleware import require_roles
 from sweater.query_analisys_tools.pipeline import build_sql_query
 # Per-connection state for pending clarifications: chat_id -> list of unmatched entries
 _pending_clarifications: dict[str, dict] = {}
@@ -46,7 +47,7 @@ router = APIRouter()
 
 @router.get("/chats")
 async def list_chats(
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "marketing_specialist")),
     db: Session = Depends(get_db),
 ):
     chat_list = get_chats_by_user_id(db, user["id"])
@@ -59,7 +60,7 @@ async def list_chats(
 @router.get("/chats/{chat_id}/messages")
 async def get_messages(
     chat_id: uuid.UUID, 
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "marketing_specialist")),
     db: Session = Depends(get_db),
 ):
     owner = get_user_id_by_chat_id(db, str(chat_id))
@@ -82,7 +83,7 @@ async def get_messages(
 @router.delete("/chats/{chat_id}")
 async def delete_chat(
     chat_id: uuid.UUID, 
-    user: dict = Depends(get_current_user), 
+    user: dict = Depends(require_roles("admin", "marketing_specialist")), 
     db: Session = Depends(get_db)
 ):
     owner = get_user_id_by_chat_id(db, str(chat_id))
@@ -104,8 +105,14 @@ async def chat_websocket(
     try:
         payload = decode_jwt(token)
         user_id = payload["sub"]
+        roles = payload.get("roles", [])
     except Exception:
         await websocket.close(code=4001, reason="Unauthorized")
+        return
+
+    # Check role access for chat (admin and marketing_specialist only)
+    if "admin" not in roles and "marketing_specialist" not in roles:
+        await websocket.close(code=4003, reason="Insufficient permissions")
         return
 
     await websocket.accept()

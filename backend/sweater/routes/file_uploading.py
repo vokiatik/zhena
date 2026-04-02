@@ -7,6 +7,8 @@ from sweater.database.base_db import get_db
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
+from sweater.routes.auth import get_current_user
+from sweater.middleware.role_middleware import require_roles
 
 from io import BytesIO
 import pandas as pd
@@ -98,6 +100,7 @@ def save_dataframe_to_db(db: Session, df) -> int:
 async def upload_retail_file(
     file: UploadFile = File(...),
     filetype: str = Form(...),
+    user: dict = Depends(require_roles("admin", "marketing_specialist")),
     db: Session = Depends(get_db),
 ):
     print(f"Received file: {file.filename}, content type: {file.content_type}, filetype: {filetype}")

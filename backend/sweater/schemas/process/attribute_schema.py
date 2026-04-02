@@ -1,26 +1,15 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class Attribute(BaseModel):
-    id: str
-    reference_value: str
-    reference_value_presetting_type_id: str
-    created_at: str
-
-class ProcessAttribute(BaseModel):
-    id: str
+class CreateProcessAttribute(BaseModel):
+    process_id: str
     title: str
-    is_shown: bool
-    is_editable: bool
-    reference_value: str = None
-    reference_value_presetting_type_id: str = None
-    created_at: str
-    process_id: str
+    is_shown: bool = True
+    is_editable: bool = True
+    reference_type_id: Optional[str] = None
 
-class ProcessAttributeCross(BaseModel):
-    picture_attribute_id: str
-    reference_value_presetting_type_id: str
-
-class ProcessAttributeReference(BaseModel):
-    process_id: str
-    picture_attribute_id: str
-    reference_value_presetting_type_id: str
+class UpdateProcessAttribute(BaseModel):
+    id: str
+    is_shown: Optional[bool] = None
+    is_editable: Optional[bool] = None
+    reference_type_id: Optional[str] = None

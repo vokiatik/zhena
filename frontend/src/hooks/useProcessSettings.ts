@@ -1,15 +1,12 @@
 import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "../api";
+import type { ProcessingItem } from "../types/processing";
+import type { ProcessSettingsResult } from "../types/ProcessSettingsResult";
 
-type ProcessSettingsResult = {
-    success: boolean;
-    data?: any;
-    error?: string;
-};
 
 export function useProcessSettings() {
-    const { get, post, del } = useApi();
+    const { get, post, put, del } = useApi();
 
     const [processId, setProcessId] = useState<string>("");
 
@@ -36,10 +33,17 @@ export function useProcessSettings() {
             };
     }, [get]);
 
+    const getAvailableTables = useCallback(
+        async () => {
+            const response = await get<string[]>(`/process/tables`);
+            return response.data;
+        }, [get]);
+
     const CreateProcess = useCallback(
-        async (processData: { title: string; description: string }) => {
+        async (processData: ProcessingItem) => {
             try{
             const response = await post<ProcessSettingsResult>(`/process/create`, processData);
+            refetchProcessList();
             return response.data;
         } catch (error) {
             return { success: false, error: (error as Error).message };
@@ -48,15 +52,16 @@ export function useProcessSettings() {
         [post]
     );
     const UpdateProcess = useCallback(
-        async (processId: string, processData: { title: string; description: string }) => {
+        async (processData: ProcessingItem) => {
             try {
-                const response = await post<ProcessSettingsResult>(`/process/update/${processId}`, processData);
+                const response = await put<ProcessSettingsResult>(`/process/update/${processData.id}`, processData);
+                refetchProcessList();
                 return response.data;
             } catch (error) {
                 return { success: false, error: (error as Error).message };
             }
         },
-        [post]
+        [put]
     );
 
     const DeleteProcess = useCallback(
@@ -82,6 +87,11 @@ export function useProcessSettings() {
         queryFn: () => getProcess(processId),
     })
 
+    const { data: availableTables } = useQuery({
+        queryKey: ['available_tables'],
+        queryFn: getAvailableTables,
+    })
+
   return { 
     processId,
     process,
@@ -90,6 +100,7 @@ export function useProcessSettings() {
     processList,
     isProcessListPending,
     ProcessListError,
+    availableTables,
     CreateProcess,
     UpdateProcess,
     DeleteProcess,

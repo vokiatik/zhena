@@ -1,10 +1,10 @@
-import type { PictureAttributes } from "./picture_attributes";
+import type { PictureAttribute } from "./picture_attributes";
 
 export interface ProcessingItem {
   id: string;
   title: string;
   description: string;
+  table_name: string;
   created_at: string;
-  responsible_user_id: string;
-  attributes: PictureAttributes[];
+  attributes: PictureAttribute[];
 }

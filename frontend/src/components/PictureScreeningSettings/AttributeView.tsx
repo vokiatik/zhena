@@ -1,94 +1,102 @@
 import { useState } from "react";
-import type { PictureAttributes } from "../../types/picture_attributes";
+import type { PictureAttribute } from "../../types/picture_attributes";
+import type { referenceListType } from "../../types/ref_list";
+import CustomDropdown from "../shared/dropdown/CustomDropdown";
 import CustomSwitch from "../shared/switch/CustomSwitch";
+
 import "./PictureScreeningSettings.css";
 
+
 interface AttributeViewProps {
-    attribute: PictureAttributes;
-    referenceList: string[] | undefined;
-    UpdateProcessAttribute: (processId: string, attribute: PictureAttributes) => Promise<void>;
+    attribute?: PictureAttribute;
+    tableColumns?: string[] | null;
+    referenceList: referenceListType[] | undefined;
+    curentProcessId?: string;
+    AddNewProcessAttribute: (attribute: PictureAttribute) => Promise<void>;
+    UpdateProcessAttribute: (attribute: PictureAttribute) => Promise<void>;
     CreateNewAttributeReferenceType: (referenceType: string) => Promise<void>;
+    setShowAttributeView: (show: boolean) => void;
+    DeleteProcessAttribute: (processId: string, attributeId: string) => Promise<void>;
 }
 
-export default function AttributeView({ attribute, referenceList, UpdateProcessAttribute, CreateNewAttributeReferenceType }: AttributeViewProps) {
-
-    const [presettingType, setPresettingType] = useState(attribute.reference_value_presetting_type || null);
-    const [showNewPresettingInput, setShowNewPresettingInput] = useState(false);
-    const [newPresettingValue, setNewPresettingValue] = useState("");
-
-    const handleToggleShown = (checked: boolean) => {
-        const updatedAttribute = { ...attribute, is_shown: checked };
-        UpdateProcessAttribute(attribute.process_id, updatedAttribute);
-    };
-
-    const handleToggleEditable = (checked: boolean) => {
-        const updatedAttribute = { ...attribute, is_editable: checked };
-        UpdateProcessAttribute(attribute.process_id, updatedAttribute);
-    };
-
-    const handleSaveReferenceValuePresettingType = (newType: string) => {
-        const updatedAttribute = { ...attribute, reference_value_presetting_type: newType };
-        UpdateProcessAttribute(attribute.process_id, updatedAttribute);
+export default function AttributeView({
+    attribute,
+    tableColumns,
+    referenceList,
+    curentProcessId,
+    AddNewProcessAttribute,
+    UpdateProcessAttribute,
+    setShowAttributeView,
+    DeleteProcessAttribute,
+}: AttributeViewProps) {
+    const defaultAttribute: PictureAttribute = {
+        id: "",
+        process_id: curentProcessId || "",
+        title: "",
+        is_shown: true,
+        is_editable: true,
+        reference_type_id: undefined,
+        created_at: new Date().toISOString(),
     }
 
+    const [newAttribute, setNewAttribute] = useState<PictureAttribute>(attribute || defaultAttribute);
 
-    const ReferenceValuePresettingDropdown = () => {
-        return (
-            <div className="reference-value-presetting-dropdown">
-                <label className="reference-value-presetting-label">Reference Value Presetting Type:</label>
-                <div className="select-container">
-                    <select
-                        value={attribute.reference_value_presetting_type || ""}
-                        onChange={(e) => setPresettingType(e.target.value)}
-                        className="dropdown"
-                    >
-                        <option className="dropdown-option" value="">None</option>
-                        {referenceList?.map((ref) => (
-                            <option key={ref} value={ref} className="dropdown-option">{ref}</option>
-                        ))}
-                    </select>
-                    <button onClick={() => setShowNewPresettingInput(!showNewPresettingInput)} className="refresh-button">{showNewPresettingInput ? "Cancel" : "Add New"}</button>
-                </div>
-                {showNewPresettingInput && (
-                    <div className="new-presetting-input">
-                        <input
-                            type="text"
-                            value={newPresettingValue}
-                            onChange={(e) => setNewPresettingValue(e.target.value)}
-                            className="new-presetting-input-field"
-                        />
-                        <button
-                            onClick={() => {
-                                if (newPresettingValue.trim()) {
-                                    CreateNewAttributeReferenceType(newPresettingValue);
-                                    setNewPresettingValue("");
-                                    setShowNewPresettingInput(false);
-                                }
-                            }}
-                            className="save-button"
-                        >
-                            Save
-                        </button>
-                    </div>
-                )}
-                <button onClick={() => handleSaveReferenceValuePresettingType(presettingType || "")} className="save-button">Save</button>
-            </div>
-        );
+
+    const handleSaveAttribute = () => {
+        if (attribute?.id) {
+            UpdateProcessAttribute(newAttribute);
+        } else {
+            AddNewProcessAttribute(newAttribute);
+        }
+        setShowAttributeView(false);
     };
 
     return (
-        <div className="attribute-view">
-            <h2 className="attribute-view-header">{attribute.title}</h2>
-            <CustomSwitch
-                label="Shown"
-                checked={attribute.is_shown}
-                onChange={handleToggleShown} />
-            <CustomSwitch
-                label="Editable"
-                checked={attribute.is_editable}
-                onChange={handleToggleEditable}
-            />
-            <ReferenceValuePresettingDropdown />
+        <div className="new-attribute-settings">
+            <h2 className="attribute-view-header">{attribute?.title || "New Attribute settings"}</h2>
+            <div className="new-attribute-dropdowns">
+                {!newAttribute.title && <CustomDropdown
+                    label="Attribute Title"
+                    options={tableColumns?.map(col => ({ value: col, label: col })) || []}
+                    defaultValue={newAttribute.title}
+                    onChange={(value) => setNewAttribute({ ...newAttribute, title: value })}
+                />
+                }
+                <CustomDropdown
+                    label="Reference Type (Dropdown Tag)"
+                    options={referenceList?.map(ref => ({ value: ref.id, label: ref.reference_value })) || []}
+                    defaultValue={newAttribute.reference_type_id}
+                    onChange={(value) => setNewAttribute({ ...newAttribute, reference_type_id: value })}
+                />
+            </div>
+            <div className="attribute-switches">
+                <CustomSwitch
+                    label="Shown"
+                    checked={newAttribute.is_shown}
+                    onChange={(checked) => setNewAttribute({ ...newAttribute, is_shown: checked })} />
+                <CustomSwitch
+                    label="Editable"
+                    checked={newAttribute.is_editable}
+                    onChange={(checked) => setNewAttribute({ ...newAttribute, is_editable: checked })}
+                />
+            </div>
+
+            <div className="attribute-view-buttons">
+                <button
+                    onClick={() => handleSaveAttribute()}
+                    className="button-primary"
+                >
+                    Save Attribute
+                </button>
+                <button
+                    onClick={
+                        () => DeleteProcessAttribute(newAttribute.process_id, newAttribute.id)
+                    }
+                    className="button-danger"
+                >
+                    Delete Attribute
+                </button>
+            </div>
         </div>
     );
 }
