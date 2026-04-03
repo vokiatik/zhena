@@ -15,10 +15,13 @@ export default function MenuSidebar() {
           <Link to="/" className="menusidebar__nav-link">Chat</Link>
         )}
         {hasAnyRole("admin", "marketing_specialist", "analyst") && (
-          <Link to="/screening/table1" className="menusidebar__nav-link">Picture Screening</Link>
+          <Link to="/processes" className="menusidebar__nav-link">Processes</Link>
         )}
         {hasAnyRole("admin", "marketing_specialist") && (
           <Link to="/upload" className="menusidebar__nav-link">File Upload</Link>
+        )}
+        {hasAnyRole("admin", "marketing_specialist") && (
+          <Link to="/link-upload" className="menusidebar__nav-link">Link Upload</Link>
         )}
         {hasAnyRole("admin") && (
           <Link to="/process" className="menusidebar__nav-link">Process Settings</Link>

@@ -28,8 +28,8 @@ export default function CustomModal({
                 </div>
 
                 <div className="modal-footer">
-                    <button onClick={handleSave}>{SaveButtonName || "Ok"}</button>
-                    <button onClick={handleClose}>Cancel</button>
+                    <button className="button-primary" onClick={handleSave}>{SaveButtonName || "Ok"}</button>
+                    <button className="button-secondary" onClick={handleClose}>Cancel</button>
                 </div>
             </div>
         </div>

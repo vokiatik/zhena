@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
-from sweater.models import RetailUploadRow
+from sweater.models.retail.Retail_model import Retail
 
 
 def save_dataframe_to_db(db: Session, df) -> int:
     rows = []
 
     for _, row in df.iterrows():
-        db_row = RetailUploadRow(
+        db_row = Retail(
             retailer_clean=row.get("Ретейлер clean"),
             advertiser_producer=row.get("Advertiser (producer)"),
             brands_list=row.get("Brands list"),

@@ -1,10 +1,10 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-from sweater.database.base_db import Base
+from sweater.database.references_db import Reference_Base as Base
 
 class RetailAdditional(Base):
-    __tablename__ = "retail_upload_rows_additional"
+    __tablename__ = "retail_process_additional"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 

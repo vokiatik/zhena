@@ -56,7 +56,7 @@ export default function LoginPage() {
           />
         </label>
 
-        <button className="auth-btn" type="submit" disabled={loading}>
+        <button className="button-primary" type="submit" disabled={loading}>
           {loading ? "Signing in…" : "Sign In"}
         </button>
 

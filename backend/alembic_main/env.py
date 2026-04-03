@@ -12,8 +12,6 @@ from alembic import context
 from sweater.database.base_db import Base
 
 from sweater.models.auth.User_model import UserModel
-from sweater.models.retail.Retail_model import Retail
-from sweater.models.retail.Retail_model_additional import RetailAdditional
 from sweater.models.chat.Chat_model import Chat
 from sweater.models.chat.Message_model import Message
 from sweater.models.auth.Email_confirmations_model import EmailConfirmation

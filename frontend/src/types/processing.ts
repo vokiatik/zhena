@@ -4,7 +4,7 @@ export interface ProcessingItem {
   id: string;
   title: string;
   description: string;
-  table_name: string;
+  type: string;
   created_at: string;
   attributes: PictureAttribute[];
 }

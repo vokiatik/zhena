@@ -84,38 +84,6 @@
   padding: 16px 24px 24px;
 }
 
-.modal-button {
-  min-width: 110px;
-  padding: 12px 18px;
-  border-radius: 12px;
-  border: none;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modal-button-secondary {
-  background: rgba(255, 255, 255, 0.07);
-  color: #e5e7eb;
-}
-
-.modal-button-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.modal-button-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-}
-
-.modal-button-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.42);
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-}
-
 @keyframes modalFadeIn {
   from {
     opacity: 0;

@@ -1,0 +1,51 @@
+.link-upload-page {
+    min-height: 100vh;
+    padding: 2rem;
+    background: #111;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+.link-upload-container {
+    max-width: 600px;
+    width: 100%;
+}
+
+.link-upload-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.link-upload-description {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+}
+
+.link-upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.link-upload-input {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #2a2a2a;
+    color: #eee;
+    font-size: 1rem;
+    outline: none;
+}
+
+.link-upload-input:focus {
+    border-color: #7c6ef5;
+}
+
+.link-upload-input:disabled {
+    opacity: 0.5;
+}
+
+.link-upload-btn {
+    align-self: flex-start;
+}

@@ -1,1 +1,0 @@
-export { default as PictureScreeningSettings } from "./PictureScreeningSettings";

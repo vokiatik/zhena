@@ -33,9 +33,9 @@ export function useProcessSettings() {
             };
     }, [get]);
 
-    const getAvailableTables = useCallback(
+    const getAvailableTypes = useCallback(
         async () => {
-            const response = await get<string[]>(`/process/tables`);
+            const response = await get<any[]>(`/process/types`);
             return response.data;
         }, [get]);
 
@@ -87,9 +87,9 @@ export function useProcessSettings() {
         queryFn: () => getProcess(processId),
     })
 
-    const { data: availableTables } = useQuery({
-        queryKey: ['available_tables'],
-        queryFn: getAvailableTables,
+    const { data: availableTypes } = useQuery({
+        queryKey: ['available_types'],
+        queryFn: getAvailableTypes,
     })
 
   return { 
@@ -100,7 +100,7 @@ export function useProcessSettings() {
     processList,
     isProcessListPending,
     ProcessListError,
-    availableTables,
+    availableTypes,
     CreateProcess,
     UpdateProcess,
     DeleteProcess,

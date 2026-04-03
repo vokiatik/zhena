@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useApi } from "../api";
 import type { PictureItem } from "../types/picture";
 
-export function usePictureScreening(role: string) {
+export function usePictureScreening(role: string, processId?: string) {
   const { get, post } = useApi();
   const [pictures, setPictures] = useState<PictureItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -14,7 +14,12 @@ export function usePictureScreening(role: string) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await get<PictureItem[]>(`/pictures/${role}`);
+      let res;
+      if (processId) {
+        res = await get<PictureItem[]>(`/pictures/process/${processId}`);
+      } else {
+        res = await get<PictureItem[]>(`/pictures/${role}`);
+      }
       setPictures(res.data);
       setCurrentIndex(0);
     } catch (e: unknown) {
@@ -22,7 +27,7 @@ export function usePictureScreening(role: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [get, role]);
+  }, [get, role, processId]);
 
   useEffect(() => {
     fetchPictures();
@@ -43,17 +48,27 @@ export function usePictureScreening(role: string) {
         }
       }
 
-      await post(`/pictures/verify`, {
-        id: currentPicture.id,
-        url: updatedData.advertisement_id ?? currentPicture.advertisement_id,
-        extra,
-      });
+      if (processId) {
+        await post(`/pictures/process/verify`, {
+          id: currentPicture.id,
+          url: updatedData.advertisement_id ?? currentPicture.advertisement_id,
+          process_id: processId,
+          extra,
+        });
+      } else {
+        await post(`/pictures/verify`, {
+          id: currentPicture.id,
+          url: updatedData.advertisement_id ?? currentPicture.advertisement_id,
+          process_id: "",
+          extra,
+        });
+      }
 
       // Move to next picture
       setCurrentIndex((i) => i + 1);
       setCanCancelVerification(false);
     },
-    [currentPicture, post, role]
+    [currentPicture, post, processId]
   );
 
   const unverify = useCallback(
@@ -71,11 +86,12 @@ export function usePictureScreening(role: string) {
       await post(`/pictures/unverify`, {
         id: currentPicture.id,
         url: updatedData.advertisement_id ?? currentPicture.advertisement_id,
+        process_id: processId || "",
         extra,
       });
       setCanCancelVerification(false);
     },
-    [currentPicture, post, role]
+    [currentPicture, post, processId]
   );
 
   const goBack = useCallback(() => {

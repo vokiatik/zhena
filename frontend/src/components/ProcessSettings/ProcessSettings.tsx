@@ -1,4 +1,4 @@
-import "./PictureScreeningSettings.css";
+import "./ProcessSettings.css";
 import { useState } from "react";
 
 import { useToast } from "../../contexts/ToastContext";
@@ -9,7 +9,7 @@ import TvLoading from "../shared/loading/TvLoading";
 
 import ProcessSettingsForm from "./ProcessSettingsForm";
 
-export default function PictureScreeningProcessList() {
+export default function ProcessSettingsList() {
     const {
         processList,
         isProcessListPending,
@@ -37,23 +37,23 @@ export default function PictureScreeningProcessList() {
         }
     };
     return (
-        <div className="picture-screening-process-list">
-            <h1 className="picture-screening-process-list__title">Picture Screening Process List</h1>
+        <div className="process-settings-list">
+            <h1 className="process-settings-list__title">Process Settings List</h1>
             {processList?.map((process: ProcessingItem) => (
-                <div key={process.id} className="picture-screening-process-list__item-container">
+                <div key={process.id} className="process-settings-list__item-container">
                     <div
-                        className="picture-screening-process-list__item"
+                        className="process-settings-list__item"
                     >
                         <span
-                            className="picture-screening-process-list__item-title"
+                            className="process-settings-list__item-title"
                         >
                             {process.title}
                         </span>
-                        <span className="picture-screening-process-list__item-description">
+                        <span className="process-settings-list__item-description">
                             {process.description}
                         </span>
                     </div>
-                    <div className="picture-screening-process-list__item-actions">
+                    <div className="process-settings-list__item-actions">
                         <button
                             onClick={() => {
                                 setCurrentProcess(process);

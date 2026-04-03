@@ -1,22 +1,26 @@
 
 from sqlalchemy.orm import Session
 
-from sweater.models.picture_processing.Picture_processing_model import PictureProcessing
+from sweater.models.process_settings.Picture_processing_model import ProcessSettings
+from sweater.models.process_settings.Process_type_model import ProcessType
 from sweater.schemas.process.process_schema import CreateProcess, UpdateProcess
 
+def get_process_types(db: Session):
+    return db.query(ProcessType).all()
+
 def get_list_of_processes(db: Session):
-    processes = db.query(PictureProcessing).all()
+    processes = db.query(ProcessSettings).all()
     return processes
 
 def get_process_by_id(db: Session, process_id):
-    process = db.query(PictureProcessing).filter(PictureProcessing.id == process_id).first()
+    process = db.query(ProcessSettings).filter(ProcessSettings.id == process_id).first()
     return process
 
 def create_process_(db: Session, v: CreateProcess):
-    new_process = PictureProcessing(
+    new_process = ProcessSettings(
         title=v.title,
         description=v.description,
-        table_name=v.table_name,
+        type=v.type,
     )
     db.add(new_process)
     db.commit()
@@ -24,21 +28,21 @@ def create_process_(db: Session, v: CreateProcess):
     return new_process
 
 def update_process_(db: Session, process_id, v: UpdateProcess):
-    process = db.query(PictureProcessing).filter(PictureProcessing.id == process_id).first()
+    process = db.query(ProcessSettings).filter(ProcessSettings.id == process_id).first()
     if not process:
         return None
     if v.title is not None:
         process.title = v.title
     if v.description is not None:
         process.description = v.description
-    if v.table_name is not None:
-        process.table_name = v.table_name
+    if v.type is not None:
+        process.type = v.type
     db.commit()
     db.refresh(process)
     return process  
 
 def delete_process_(db: Session, process_id):
-    process = db.query(PictureProcessing).filter(PictureProcessing.id == process_id).first()
+    process = db.query(ProcessSettings).filter(ProcessSettings.id == process_id).first()
     if not process:
         return None
     db.delete(process)

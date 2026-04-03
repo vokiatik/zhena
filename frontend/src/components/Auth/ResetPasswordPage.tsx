@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
           />
         </label>
 
-        <button className="auth-btn" type="submit" disabled={loading}>
+        <button className="button-primary" type="submit" disabled={loading}>
           {loading ? "Resetting…" : "Reset Password"}
         </button>
 

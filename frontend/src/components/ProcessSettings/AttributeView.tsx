@@ -4,7 +4,7 @@ import type { referenceListType } from "../../types/ref_list";
 import CustomDropdown from "../shared/dropdown/CustomDropdown";
 import CustomSwitch from "../shared/switch/CustomSwitch";
 
-import "./PictureScreeningSettings.css";
+import "./ProcessSettings.css";
 
 
 interface AttributeViewProps {
@@ -55,7 +55,7 @@ export default function AttributeView({
         <div className="new-attribute-settings">
             <h2 className="attribute-view-header">{attribute?.title || "New Attribute settings"}</h2>
             <div className="new-attribute-dropdowns">
-                {!newAttribute.title && <CustomDropdown
+                {!attribute?.title && <CustomDropdown
                     label="Attribute Title"
                     options={tableColumns?.map(col => ({ value: col, label: col })) || []}
                     defaultValue={newAttribute.title}

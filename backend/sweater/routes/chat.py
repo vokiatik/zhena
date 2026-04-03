@@ -26,6 +26,7 @@ from sweater.query_analisys_tools.clarification import (
 )
 from sweater.routes.auth import get_current_user, decode_jwt
 from sweater.middleware.role_middleware import require_roles
+from sweater.services.auth.role_service import get_user_roles
 from sweater.query_analisys_tools.pipeline import build_sql_query
 # Per-connection state for pending clarifications: chat_id -> list of unmatched entries
 _pending_clarifications: dict[str, dict] = {}
@@ -52,8 +53,8 @@ async def list_chats(
 ):
     chat_list = get_chats_by_user_id(db, user["id"])
     return [
-        {"id": chat.id, "title": chat.message, "createdAt": chat.timestamp.isoformat()}
-        for chat in sorted(chat_list, key=lambda c: c.timestamp, reverse=True)
+        {"id": chat.id, "title": chat.title, "createdAt": chat.created_at.isoformat()}
+        for chat in sorted(chat_list, key=lambda c: c.created_at, reverse=True)
     ]
 
 
@@ -68,13 +69,13 @@ async def get_messages(
     if owner is None or str(owner) != user["id"]:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    rows = await get_messages_by_chat_id(db, str(chat_id))
+    rows = get_messages_by_chat_id(db, str(chat_id))
     return [
         {
-            "id": str(r["id"]),
-            "role": r["role"],
-            "content": r["content"],
-            "timestamp": int(r["created_at"].timestamp() * 1000),
+            "id": str(r.id),
+            "role": r.role,
+            "content": r.content,
+            "timestamp": int(r.created_at.timestamp() * 1000),
         }
         for r in rows
     ]
@@ -105,13 +106,13 @@ async def chat_websocket(
     try:
         payload = decode_jwt(token)
         user_id = payload["sub"]
-        roles = payload.get("roles", [])
     except Exception:
         await websocket.close(code=4001, reason="Unauthorized")
         return
 
-    # Check role access for chat (admin and marketing_specialist only)
-    if "admin" not in roles and "marketing_specialist" not in roles:
+    # Check role access from database (consistent with HTTP endpoints)
+    db_roles = get_user_roles(db, user_id)
+    if "admin" not in db_roles and "marketing_specialist" not in db_roles:
         await websocket.close(code=4003, reason="Insufficient permissions")
         return
 
@@ -124,7 +125,7 @@ async def chat_websocket(
             msg_type = data.get("type")
 
             if msg_type == "new_chat":
-                chat_id, title = await _create_chat(user_id, data.get("title", "New Chat"))
+                chat_id, title = await _create_chat(db, user_id, data.get("title", "New Chat"))
                 await websocket.send_text(json.dumps({
                     "type": "chat_created",
                     "chatId": chat_id,
@@ -141,7 +142,7 @@ async def chat_websocket(
                 if owner is None or str(owner) != user_id:
                     continue
 
-                user_msg = await _save_message(chat_id, "user", content)
+                user_msg = await _save_message(db, chat_id, "user", content)
                 await websocket.send_text(json.dumps({
                     "type": "message",
                     "chatId": chat_id,
@@ -172,10 +173,10 @@ async def chat_websocket(
                     else:
                         # Fresh query — run the full pipeline with status updates
                         answer_text = await _run_pipeline_with_status(
-                            chat_id, user_msg["id"], content, websocket
+                            db, chat_id, user_msg["id"], content, websocket
                         )
 
-                    assistant_msg = await _save_message(chat_id, "assistant", answer_text)
+                    assistant_msg = await _save_message(db, chat_id, "assistant", answer_text)
                     await websocket.send_text(json.dumps({
                         "type": "message",
                         "chatId": chat_id,
@@ -244,10 +245,10 @@ async def _advance_clarification(chat_id, pending):
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
-async def _send_status(websocket: WebSocket, chat_id: str, message_id: str, status: str):
+async def _send_status(db: Session, websocket: WebSocket, chat_id: str, message_id: str, status: str):
     """Save a processing status to the DB and push it to the client."""
     label = STATUS_LABELS.get(status, status)
-    await _save_status(message_id, status, label)
+    _save_status(db, message_id, status, label)
     await websocket.send_text(json.dumps({
         "type": "status",
         "chatId": chat_id,
@@ -257,11 +258,11 @@ async def _send_status(websocket: WebSocket, chat_id: str, message_id: str, stat
     }))
 
 
-async def _save_status(
+def _save_status(
+    db: Session,
     message_id: str, 
     status: str, 
     label: str,
-    db: Session = Depends(get_db),
 ):
     """Persist a processing status row."""
     create_processing_status(db, ProcessingStatus(
@@ -272,35 +273,35 @@ async def _save_status(
     ))
 
 
-async def _run_pipeline_with_status(chat_id: str, message_id: str, content: str, websocket: WebSocket) -> str:
+async def _run_pipeline_with_status(db: Session, chat_id: str, message_id: str, content: str, websocket: WebSocket) -> str:
     """Run the query pipeline step-by-step, emitting status updates at each stage."""
 
     # Step 1 — Analyzing
-    await _send_status(websocket, chat_id, message_id, "analyzing")
+    await _send_status(db, websocket, chat_id, message_id, "analyzing")
 
     # Step 2 — Extract entities + search DB (and decompose in parallel)
-    await _send_status(websocket, chat_id, message_id, "extracting_entities")
+    await _send_status(db, websocket, chat_id, message_id, "extracting_entities")
     extraction_task = asyncio.to_thread(extract_and_match, content)
     decompose_task = asyncio.to_thread(decompose_query, content)
     (matched, unmatched), decomposed = await asyncio.gather(extraction_task, decompose_task)
 
     # Step 3 — Searching database (already done above, but the label is meaningful)
-    await _send_status(websocket, chat_id, message_id, "searching_database")
+    await _send_status(db, websocket, chat_id, message_id, "searching_database")
 
     # Step 4 — Check for unknown data
-    await _send_status(websocket, chat_id, message_id, "checking_data")
+    await _send_status(db, websocket, chat_id, message_id, "checking_data")
     metrics_match = compare_metrics(matched, decomposed)
 
     if not unmatched:
         # Step 5 — Build SQL
-        await _send_status(websocket, chat_id, message_id, "building_query")
+        await _send_status(db, websocket, chat_id, message_id, "building_query")
         result = build_sql_query(matched, decomposed)
-        await _send_status(websocket, chat_id, message_id, "complete")
+        await _send_status(db, websocket, chat_id, message_id, "complete")
         _pending_clarifications.pop(chat_id, None)
         return json.dumps(result, indent=2)
 
     # Some entities are unmatched — ask for clarification
-    await _send_status(websocket, chat_id, message_id, "complete")
+    await _send_status(db, websocket, chat_id, message_id, "complete")
     _pending_clarifications[chat_id] = {
         "state": "awaiting_clarification",
         "unmatched": list(unmatched),
@@ -313,34 +314,32 @@ async def _run_pipeline_with_status(chat_id: str, message_id: str, content: str,
 
 
 async def _create_chat(
+    db: Session,
     user_id: str, 
     title: str,
-    db: Session = Depends(get_db),
 ) -> tuple[str, str]:
     
     chat = create_chat(db, ChatRequest(
         user_id=user_id,
-        message=title,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        title=title,
     ))
-    return str(chat.id), chat.message
+    return str(chat.id), chat.title
 
 
 async def _save_message(
+    db: Session,
     chat_id: str, 
     role: str, 
     content: str, 
-    db: Session = Depends(get_db)
 ) -> dict:
     message = create_message(db, MessageRequest(
         chat_id=chat_id,
-        user_id="",  # Not needed for messages, but the schema requires it
-        message=content,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        role=role,
+        content=content,
     ))
     return {
         "id": str(message.id),
         "role": message.role,
         "content": message.content,
-        "timestamp": int(message.timestamp.replace(tzinfo=timezone.utc).timestamp() * 1000),
+        "timestamp": int(message.created_at.timestamp() * 1000),
     }

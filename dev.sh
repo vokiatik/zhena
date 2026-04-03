@@ -169,6 +169,11 @@ echo -e "${CYAN}Running Alembic migrations...${NC}"
 (cd backend && alembic -c alembic_reference.ini upgrade head)
 echo -e "${GREEN}✓ Database migrations applied${NC}"
 
+# ── 8b. Seed default data ──────────────────────────────────────
+echo -e "${CYAN}Seeding default data...${NC}"
+python db_seed.py
+echo -e "${GREEN}✓ Default data seeded${NC}"
+
 # ── 9. Start backend (FastAPI with hot-reload) ─────────────────
 echo -e "${CYAN}Starting backend on http://localhost:8001 ...${NC}"
 (cd backend && uvicorn main:app --host 0.0.0.0 --port 8001 --reload) &

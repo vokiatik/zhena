@@ -3,17 +3,16 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from sweater.schemas.process.process_schema import CreateProcess, UpdateProcess
-from sweater.services.process.process_service import get_list_of_processes, get_process_by_id, create_process_, delete_process_, update_process_
-from sweater.services.process.attributes_service import get_available_tables
+from sweater.services.process.process_service import get_list_of_processes, get_process_by_id, create_process_, delete_process_, update_process_, get_process_types
 from sweater.database.references_db import get_reference_db
 from sweater.routes.auth import get_current_user
 from sweater.middleware.role_middleware import require_roles
 
 router = APIRouter(prefix="/process", tags=["process"])
 
-@router.get("/tables")
-def list_available_tables(user: dict = Depends(require_roles("admin"))):
-    return get_available_tables()
+@router.get("/types")
+def list_process_types(user: dict = Depends(require_roles("admin")), db: Session = Depends(get_reference_db)):
+    return get_process_types(db)
 
 @router.get("/list")
 def list_processes(user: dict = Depends(require_roles("admin")), db: Session = Depends(get_reference_db)):

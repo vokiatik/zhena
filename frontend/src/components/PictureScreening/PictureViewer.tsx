@@ -1,19 +1,27 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { PictureItem } from "../../types/picture";
+import type { PictureAttribute } from "../../types/picture_attributes";
+import { useSaveTimer } from "./useSaveTimer";
+import PictureFieldList from "./PictureFieldList";
+import SaveOverlay from "./SaveOverlay";
+import PresetModal from "./PresetModal";
 
 interface PictureViewerProps {
     picture: PictureItem;
     previousPicture: PictureItem | null;
     canCancelVerification?: boolean;
+    settings?: PictureAttribute[];
     onVerify: (data: Record<string, string>) => Promise<void>;
     onGoBack: () => void;
     onUnverify: (data: Record<string, string>) => Promise<void>;
 }
 
 const HIDDEN_FIELDS = new Set(["id", "verified", "created_at"]);
-const SAVE_DELAY = 2000;
 
-export default function PictureViewer({ picture, previousPicture, canCancelVerification, onVerify, onGoBack, onUnverify }: PictureViewerProps) {
+export default function PictureViewer({ picture, previousPicture, canCancelVerification, settings, onVerify, onGoBack, onUnverify }: PictureViewerProps) {
+    const settingsMap = new Map(settings?.map((s) => [s.title, s]) ?? []);
+    const hasSettings = settings && settings.length > 0;
+
     const getEditableFields = useCallback((pic: PictureItem): Record<string, string> => {
         const fields: Record<string, string> = {};
         for (const [key, value] of Object.entries(pic)) {
@@ -26,46 +34,16 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
     }, []);
 
     const [fields, setFields] = useState<Record<string, string>>(() => getEditableFields(picture));
-    const [saving, setSaving] = useState(false);
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [showPreset, setShowPreset] = useState<string | null>(null);
 
-    // Reset fields when picture changes
+    const { saving, start: startSave, reset: resetSave } = useSaveTimer(
+        useCallback(() => onVerify(fields), [fields, onVerify])
+    );
+
     useEffect(() => {
         setFields(getEditableFields(picture));
-        setSaving(false);
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-        }
-    }, [picture, getEditableFields]);
-
-    const cancelSave = useCallback(() => {
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-        }
-        setSaving(false);
-    }, []);
-
-    const startSave = useCallback(() => {
-        if (saving) return;
-        setSaving(true);
-        timerRef.current = setTimeout(async () => {
-            timerRef.current = null;
-            setSaving(false);
-            await onVerify(fields);
-        }, SAVE_DELAY);
-    }, [saving, fields, onVerify]);
-
-    useEffect(() => {
-        if (!saving) return;
-        const handler = (e: KeyboardEvent) => {
-            e.preventDefault();
-            cancelSave();
-        };
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, [saving, cancelSave]);
+        resetSave();
+    }, [picture, getEditableFields, resetSave]);
 
     const handleFieldChange = (key: string, value: string) => {
         setFields((prev) => ({ ...prev, [key]: value }));
@@ -78,51 +56,50 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
         }
     };
 
+    const handleAddNewPresetValue = (_key: string, _newValue: string) => {
+        // TODO: implement preset addition
+    };
+
     return (
         <div className="pv-wrapper" onKeyDown={handleKeyDown}>
-            {/* Go-back button */}
             {previousPicture && (
-                <button className="pv-back-btn" onClick={onGoBack} type="button">
+                <button className="button-secondary pv-back-btn" onClick={onGoBack} type="button">
                     ← Get back
                 </button>
             )}
 
-            {/* Picture display */}
             <div className="pv-image-container">
                 <img src={fields.advertisement_id} alt="screening" className="pv-image" />
             </div>
 
-            {/* Editable fields */}
-            <div className="pv-fields">
-                {Object.entries(fields).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)).map(([key, value]) => (
-                    <label key={key} className="pv-field">
-                        <span className="pv-field-label">{key}</span>
-                        <input
-                            type="text"
-                            className="pv-field-input"
-                            value={value}
-                            onChange={(e) => handleFieldChange(key, e.target.value)}
-                        />
-                    </label>
-                ))}
-            </div>
+            <PictureFieldList
+                fields={fields}
+                settingsMap={settingsMap}
+                hasSettings={!!hasSettings}
+                onFieldChange={handleFieldChange}
+                onShowPreset={setShowPreset}
+            />
+
             <div className="pv-buttons">
                 {canCancelVerification && (
-                    <button className="pv-warn-btn" onClick={() => onUnverify(fields)} type="button">
+                    <button className="button-danger" onClick={() => onUnverify(fields)} type="button">
                         Cancel verification
                     </button>
                 )}
-                {/* OK / save button */}
-                <button className="pv-ok-btn" onClick={startSave} type="button">
+                <button className="button-primary" onClick={startSave} type="button">
                     OK
                 </button>
             </div>
 
-            {/* Full-screen save banner overlay */}
-            {saving && (
-                <div className="pv-save-overlay">
-                    <p className="pv-save-text">Saving in progress. Press any key to cancel.</p>
-                </div>
+            {saving && <SaveOverlay />}
+
+            {showPreset && settings && (
+                <PresetModal
+                    fieldKey={showPreset}
+                    settings={settings}
+                    onAdd={handleAddNewPresetValue}
+                    onClose={() => setShowPreset(null)}
+                />
             )}
         </div>
     );

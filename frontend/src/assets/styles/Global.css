@@ -48,3 +48,12 @@
   color: #f87171;
   transform: scale(1.05);
 }
+
+.button-primary:disabled,
+.button-secondary:disabled,
+.button-danger:disabled {
+  background: rgba(255, 255, 255, 0.06);
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}

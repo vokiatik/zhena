@@ -1,0 +1,128 @@
+.pi-container {
+    padding: 2rem;
+    background: #111;
+    color: #fff;
+    min-height: 100vh;
+}
+
+.pi-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.pi-create-btn {
+    margin-bottom: 1.5rem;
+}
+
+.pi-error {
+    color: #e74c3c;
+    padding: 2rem;
+}
+
+.pi-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pi-header-row {
+    display: flex;
+    padding: 10px 16px;
+    background: #1a1a1a;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pi-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    transition: background 0.15s;
+}
+
+.pi-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pi-row:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+.pi-col {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pi-col--type {
+    flex: 0 0 100px;
+}
+
+.pi-col--status {
+    flex: 0 0 120px;
+}
+
+.pi-col--comment {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-right: 12px;
+}
+
+.pi-col--items {
+    flex: 0 0 80px;
+    text-align: center;
+}
+
+.pi-col--date {
+    flex: 0 0 110px;
+}
+
+.pi-col--actions {
+    flex: 0 0 220px;
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.pi-type-badge {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.pi-status--initiated {
+    color: #facc15;
+}
+
+.pi-status--progress {
+    color: #3b82f6;
+}
+
+.pi-status--done {
+    color: #22c55e;
+}
+
+.pi-status-select {
+    background: #2a2a2a;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+}
+
+.pi-action-btn {
+    padding: 6px 14px !important;
+    font-size: 0.85rem !important;
+}
+
+.pi-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-size: 1rem;
+}

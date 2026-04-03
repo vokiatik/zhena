@@ -5,8 +5,10 @@ import { FileUploadPage } from "./pages/UploadPage";
 import { ChatPage } from "./pages/ChatPage";
 import ScreeningPage from "./pages/PictureScreening/PictureScreening";
 import { MainLayout } from "./pages/Layout";
-import PictureScreeningProcessList from "./components/PictureScreeningSettings/PictureScreeningSettings";
-import ProcessSettingsForm from "./components/PictureScreeningSettings/ProcessSettingsForm";
+import ProcessSettingsList from "./components/ProcessSettings/ProcessSettings";
+import ProcessSettingsForm from "./components/ProcessSettings/ProcessSettingsForm";
+import ProcessInstancesPage from "./pages/ProcessInstances/ProcessInstances";
+import LinkUploadPage from "./pages/LinkUpload/LinkUpload";
 import "./assets/styles/Global.css";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -32,10 +34,34 @@ function App() {
           <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
           <Route
+            path="/screening/process/:processId"
+            element={
+              <RoleGuard allowedRoles={["admin", "marketing_specialist", "analyst"]}>
+                <ScreeningPage />
+              </RoleGuard>
+            }
+          />
+          <Route
             path="/screening/:role"
             element={
               <RoleGuard allowedRoles={["admin", "marketing_specialist", "analyst"]}>
                 <ScreeningPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/processes"
+            element={
+              <RoleGuard allowedRoles={["admin", "marketing_specialist", "analyst"]}>
+                <ProcessInstancesPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/link-upload"
+            element={
+              <RoleGuard allowedRoles={["admin", "marketing_specialist"]}>
+                <LinkUploadPage />
               </RoleGuard>
             }
           />
@@ -59,7 +85,7 @@ function App() {
             path="/process"
             element={
               <RoleGuard allowedRoles={["admin"]}>
-                <PictureScreeningProcessList />
+                <ProcessSettingsList />
               </RoleGuard>
             }
           />

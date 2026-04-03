@@ -1,14 +1,14 @@
-from requests import Session
 from fastapi import APIRouter, Depends, Form, HTTPException
 
 from sweater.models.retail.Retail_model import Retail
 from sweater.schemas.fileUpload.file_upload_shcema import UploadResponse
-from sweater.database.base_db import get_db
+from sweater.database.references_db import get_reference_db
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from sweater.routes.auth import get_current_user
 from sweater.middleware.role_middleware import require_roles
+from sweater.services.process.process_instance_service import create_process_instance
 
 from io import BytesIO
 import pandas as pd
@@ -71,7 +71,7 @@ def _read_csv_with_fallbacks(content: bytes) -> pd.DataFrame:
 
     raise ValueError(f"Failed to read CSV file: {last_error}")
 
-def save_dataframe_to_db(db: Session, df) -> int:
+def save_dataframe_to_db(db: Session, df, process_id=None) -> int:
     rows = []
 
     for _, row in df.iterrows():
@@ -87,6 +87,7 @@ def save_dataframe_to_db(db: Session, df) -> int:
             last_screen_date=row.get("Дата последнего скрина"),
             advertisement_id=str(row.get("Advertisement ID")) if row.get("Advertisement ID") is not None else None,
             verified=False,
+            process_id=process_id,
         )
         rows.append(db_row)
 
@@ -101,7 +102,7 @@ async def upload_retail_file(
     file: UploadFile = File(...),
     filetype: str = Form(...),
     user: dict = Depends(require_roles("admin", "marketing_specialist")),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_reference_db),
 ):
     print(f"Received file: {file.filename}, content type: {file.content_type}, filetype: {filetype}")
     if not file.filename:
@@ -120,7 +121,16 @@ async def upload_retail_file(
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
         df = parse_uploaded_file(file.filename, content)
-        inserted_rows = save_dataframe_to_db(db, df)
+
+        # Create a process instance for this file upload
+        process = create_process_instance(
+            db,
+            type_name="file",
+            comment=file.filename,
+            initiator_id=user["id"],
+        )
+
+        inserted_rows = save_dataframe_to_db(db, df, process_id=process.id)
 
         return UploadResponse(
             ok=True,

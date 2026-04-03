@@ -1,15 +1,19 @@
 from sqlalchemy.orm import Session
 
 from sweater.schemas.process.attribute_schema import CreateProcessAttribute, UpdateProcessAttribute
-from sweater.models.picture_processing.Process_attributes_crosstable_model import ProcessAttributes
+from sweater.models.process_settings.Process_attributes_crosstable_model import ProcessAttributes
 from sweater.models.retail.Retail_model import Retail
+from sweater.models.retail.Retail_processed_model import RetailProcessed
+from sweater.models.retail.Analyst_processed_model import AnalystProcessed
 
 # Registry of available tables — add new models here as they're created
 TABLE_REGISTRY = {
     "retail": Retail,
+    "retail_processed": RetailProcessed,
+    "analyst_processed": AnalystProcessed,
 }
 
-EXCLUDED_COLUMNS = {"id", "verified", "created_at"}
+EXCLUDED_COLUMNS = {"id", "verified", "created_at", "user_id", "type", "process_id", "retail_processed_id"}
 
 def get_available_tables():
     return list(TABLE_REGISTRY.keys())

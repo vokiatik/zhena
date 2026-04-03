@@ -5,9 +5,8 @@ from sweater.models.chat.Message_model import Message
 def create_message(db: Session, message: MessageRequest):
     db_message = Message(
         chat_id=message.chat_id,
-        sender_id=message.sender_id,
+        role=message.role,
         content=message.content,
-        timestamp=message.timestamp
     )
     db.add(db_message)
     db.commit()

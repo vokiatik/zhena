@@ -18,7 +18,7 @@ export function useAttributesSettings(tableName?: string, processId?: string) {
     const getTableColumns = useCallback(
         async () => {
             if (!tableName) return [];
-            const response = await get<string[]>(`/process/attributes/list?table_name=${tableName}`);
+            const response = await get<string[]>(`/process/attributes/list?type_id=${tableName}`);
             return response.data;
         }, [get, tableName]);
 

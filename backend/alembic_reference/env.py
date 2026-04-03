@@ -11,11 +11,18 @@ from alembic import context
 
 from sweater.database.references_db import Reference_Base
 
-from sweater.models.picture_processing.Picture_attribute_reference_type_model import PictureAttributeReferenceType
-from sweater.models.picture_processing.Picture_attribute_reference_model import PictureAttributeReference
-from sweater.models.picture_processing.Process_attributes_crosstable_model import ProcessAttributes
-from sweater.models.picture_processing.Picture_attribute_reference_crosstable_model import PictureAttributeReferenceCrosstable
-from sweater.models.picture_processing.Picture_processing_model import PictureProcessing
+from sweater.models.process_settings.Picture_attribute_reference_type_model import PictureAttributeReferenceType
+from sweater.models.process_settings.Picture_attribute_reference_model import PictureAttributeReference
+from sweater.models.process_settings.Process_attributes_crosstable_model import ProcessAttributes
+from sweater.models.process_settings.Picture_attribute_reference_crosstable_model import PictureAttributeReferenceCrosstable
+from sweater.models.process_settings.Picture_processing_model import ProcessSettings
+from sweater.models.process_settings.Process_type_model import ProcessType
+from sweater.models.process_settings.Process_status_model import ProcessStatus
+from sweater.models.process_settings.Process_model import Process
+from sweater.models.retail.Retail_model import Retail
+from sweater.models.retail.Retail_model_additional import RetailAdditional
+from sweater.models.retail.Retail_processed_model import RetailProcessed
+from sweater.models.retail.Analyst_processed_model import AnalystProcessed
 
 load_dotenv()
 

@@ -1,6 +1,6 @@
 import { useProcessSettings } from "../../hooks/useProcessSettings";
 import AttributeSettingsForm from "./AttributeSettingForm";
-import "./PictureScreeningSettings.css";
+import "./ProcessSettings.css";
 import type { ProcessingItem } from "../../types/processing";
 import CustomModal from "../shared/modal/CustomModal";
 import CustomDropdown from "../shared/dropdown/CustomDropdown";
@@ -16,7 +16,7 @@ interface ProcessSettingsFormProps {
 export default function ProcessSettingsForm({ ProcessItem, setShowNewProcessModal, CreateProcess }: ProcessSettingsFormProps) {
     const {
         UpdateProcess,
-        availableTables,
+        availableTypes,
     } = useProcessSettings();
 
     const [currentProcess, setCurrentProcess] = useState<ProcessingItem>(ProcessItem ||
@@ -24,7 +24,7 @@ export default function ProcessSettingsForm({ ProcessItem, setShowNewProcessModa
             id: "",
             title: "",
             description: "",
-            table_name: "retail",
+            type: "",
             created_at: new Date().toISOString(),
             attributes: []
         } as ProcessingItem
@@ -50,10 +50,10 @@ export default function ProcessSettingsForm({ ProcessItem, setShowNewProcessModa
             children={
                 <div className="modal-inputs">
                     <CustomDropdown
-                        label="Table"
-                        options={availableTables?.map((t: string) => ({ value: t, label: t })) || []}
-                        defaultValue={currentProcess.table_name}
-                        onChange={(value) => setCurrentProcess({ ...currentProcess, table_name: value })}
+                        label="Type"
+                        options={availableTypes?.map((t: any) => ({ value: t.id, label: t.process_type_name })) || []}
+                        defaultValue={currentProcess.type}
+                        onChange={(value) => setCurrentProcess({ ...currentProcess, type: value })}
                     />
                     <input
                         type="text"

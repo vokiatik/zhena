@@ -1,4 +1,4 @@
-import "./PictureScreeningSettings.css";
+import "./ProcessSettings.css";
 import { useState } from "react";
 import { useAttributesSettings } from "../../hooks/useAttributesSettings";
 import type { ProcessingItem } from "../../types/processing";
@@ -21,7 +21,7 @@ export default function AttributeSettingsForm({
         DeleteProcessAttribute,
         UpdateProcessAttribute,
         CreateNewAttributeReferenceType
-    } = useAttributesSettings(curentProcess?.table_name, curentProcess?.id);
+    } = useAttributesSettings(curentProcess?.type, curentProcess?.id);
 
     const [showAttributeView, setShowAttributeView] = useState(false);
 
