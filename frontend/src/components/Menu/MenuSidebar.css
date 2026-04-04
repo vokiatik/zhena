@@ -1,20 +1,10 @@
 .menusidebar {
-  width: 260px;
-  min-width: 260px;
+  width: 100%;
+  height: 100%;
   background: #171717;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #2e2e2e;
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  z-index: 100;
-}
-
-.menusidebar--right {
-  right: 0;
-  left: auto;
+  overflow-y: auto;
 }
 
 .menusidebar__nav {
@@ -38,4 +28,122 @@
 .menusidebar__nav-link.active {
   background: #232323;
   color: #ff6b6b;
+}
+
+.menusidebar__accordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.menusidebar__accordion-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  font-size: 1rem;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.menusidebar__accordion-toggle:hover {
+  background: #232323;
+  color: #ff6b6b;
+}
+
+.menusidebar__accordion-arrow {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+
+.menusidebar__accordion-toggle--open .menusidebar__accordion-arrow {
+  transform: rotate(-135deg);
+}
+
+.menusidebar__accordion-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 1px solid #2e2e2e;
+  margin-left: 16px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+  opacity: 0;
+}
+
+.menusidebar__accordion-body--open {
+  max-height: 300px;
+  opacity: 1;
+}
+
+.menusidebar__user-info {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 12px;
+  border-top: 1px solid #2e2e2e;
+}
+
+.menusidebar__user-email {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.menusidebar__logout-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.menusidebar__logout-link:hover {
+  background: #232323;
+  color: #ff6b6b;
+}
+
+.footer-logout-btn:hover {
+    background-color: #ff4d4d;
+    color: #fff;
+}
+
+.menusidebar__user-info {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 16px 12px;
+    border-top: 1px solid #2e2e2e;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menusidebar__user-email {
+    font-size: 0.9rem;
+    color: #e0e0e0;
+}
+
+.menusidebar__logout-link {
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.menusidebar__logout-link:hover {
+    color: #ff4d4d;
 }

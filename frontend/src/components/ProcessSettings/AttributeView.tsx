@@ -64,7 +64,7 @@ export default function AttributeView({
                 }
                 <CustomDropdown
                     label="Reference Type (Dropdown Tag)"
-                    options={referenceList?.map(ref => ({ value: ref.id, label: ref.reference_value })) || []}
+                    options={referenceList?.map(ref => ({ value: ref.id, label: ref.reference_type_name })) || []}
                     defaultValue={newAttribute.reference_type_id}
                     onChange={(value) => setNewAttribute({ ...newAttribute, reference_type_id: value })}
                 />

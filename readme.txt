@@ -8,3 +8,6 @@ cd "/home/admin/Desktop/text analyser" && docker compose up postgres -d 2>&1
 
 to run smtp
 cd "/home/admin/Desktop/text analyser" && docker compose up -d mailhog
+
+./migrate_main.sh
+./migrate_reference.sh

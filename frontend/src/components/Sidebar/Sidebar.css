@@ -78,39 +78,3 @@
   color: #ff6b6b;
   background: rgba(255, 107, 107, 0.12);
 }
-
-/* ── User section ────────────────────────────────────────────── */
-
-.sidebar__user {
-  padding: 12px;
-  border-top: 1px solid #2e2e2e;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar__user-email {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #999;
-  font-size: 0.8rem;
-}
-
-.sidebar__logout-btn {
-  background: none;
-  border: 1px solid #3e3e3e;
-  color: #ccc;
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
-}
-
-.sidebar__logout-btn:hover {
-  background: #2a2a2a;
-  color: #ff6b6b;
-}

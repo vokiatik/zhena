@@ -31,7 +31,7 @@ export function useAttributesSettings(tableName?: string, processId?: string) {
 
     const getProcessAttributesReferenceList = useCallback(
         async () => {
-            const response = await get<referenceListType[]>(`/process/attributes/reference/types_list`);
+            const response = await get<referenceListType[]>(`/reference/types_list`);
             return response.data;
         }, [get]);
 
@@ -61,7 +61,7 @@ export function useAttributesSettings(tableName?: string, processId?: string) {
 
     const CreateNewAttributeReferenceType = useCallback(
         async (referenceType: string) => {
-            const res = await post<AttributeSettingsResult>(`/process/attributes/reference/create_type?reference_type=${referenceType}`);
+            const res = await post<AttributeSettingsResult>(`/reference/create_type?reference_type=${referenceType}`);
             if (res.data.success) {
                 refetchReferenceList();
             } else {

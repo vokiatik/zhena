@@ -1,0 +1,17 @@
+.reference-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reference-list-inputs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reference-list-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

@@ -18,8 +18,6 @@ export default function Sidebar({
   onSelectChat,
   onNewChat,
   onDeleteChat,
-  userEmail,
-  onLogout,
 }: SidebarProps) {
   return (
     <aside className="sidebar">
@@ -39,12 +37,6 @@ export default function Sidebar({
         ))}
       </nav>
 
-      <div className="sidebar__user">
-        <span className="sidebar__user-email" title={userEmail}>{userEmail}</span>
-        <button className="sidebar__logout-btn" onClick={onLogout}>
-          Log out
-        </button>
-      </div>
     </aside>
   );
 }

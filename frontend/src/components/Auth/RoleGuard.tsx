@@ -26,12 +26,7 @@ export default function RoleGuard({
         if (fallbackPath) {
             return <Navigate to={fallbackPath} replace />;
         }
-        return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", flexDirection: "column", gap: "1rem" }}>
-                <h2>Access Denied</h2>
-                <p>You do not have permission to view this page. Contact an administrator to get a role assigned.</p>
-            </div>
-        );
+        return <Navigate to="/login" replace />;
     }
 
     return <>{children}</>;
