@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ReferenceListInputProps {
     refId: string;
@@ -16,8 +16,13 @@ export default function ReferenceListInput({
 
     const [referenceValue, setReferenceValue] = useState<string>(initialValue);
 
+    useEffect(() => {
+        setReferenceValue(initialValue);
+    }, [initialValue]);
+
     const handleUpdate = () => {
         onUpdate(refId, referenceValue);
+        setReferenceValue(referenceValue);
     }
 
     const handleDelete = () => {
@@ -26,8 +31,14 @@ export default function ReferenceListInput({
 
     return (
         <div key={refId} className="reference-list-input-item">
-            <input type="text" value={referenceValue} onChange={(e) => setReferenceValue(e.target.value)} />
-            <button className="button-secondary" onClick={handleUpdate}>Update</button>
+            <input className="reference-list-input" type="text" value={referenceValue} onChange={(e) => setReferenceValue(e.target.value)} />
+            <button
+                className="button-secondary"
+                onClick={handleUpdate}
+                disabled={referenceValue.trim() === "" || referenceValue === initialValue}
+            >
+                Update
+            </button>
             <button className="button-danger" onClick={handleDelete}>Delete</button>
         </div>
     );

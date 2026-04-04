@@ -69,7 +69,7 @@ def parse_reference_file(filename: str, content: bytes) -> pd.DataFrame:
 
     df.columns = [str(col).strip() for col in df.columns]
 
-    required_columns = ["reference_value", "reference_presetting_type"]
+    required_columns = ["value", "type"]
     missing = [col for col in required_columns if col not in df.columns]
     if missing:
         raise ValueError(f"Missing required columns: {', '.join(missing)}")
@@ -116,8 +116,11 @@ def save_retail_dataframe_to_db(db: Session, df, process_id=None) -> int:
 def save_reference_dataframe_to_db(db: Session, df, process_id=None) -> int:
     rows = []
     for _, row in df.iterrows():
-        reference_value = row.get("reference_value")
-        reference_presetting_type = row.get("reference_presetting_type")
+        reference_value = row.get("value")
+        reference_presetting_type = row.get("type")
+
+        reference_value = str(reference_value).strip().capitalize() if reference_value is not None else None
+        reference_presetting_type = str(reference_presetting_type).strip().capitalize() if reference_presetting_type is not None else None
 
         if not reference_value or not reference_presetting_type:
             continue
@@ -134,7 +137,6 @@ def save_reference_dataframe_to_db(db: Session, df, process_id=None) -> int:
         db_row = PictureAttributeReference(
             reference_value=reference_value,
             reference_type_id=reference_type.id,
-            process_id=process_id,
         )
         rows.append(db_row)
 

@@ -12,6 +12,29 @@
 
 .reference-list-input-item {
   display: flex;
-  flex-direction: column;
   gap: 4px;
+}
+
+.reference-list-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #2e2e2e;
+  border-radius: 4px;
+  background-color: #171717;
+  color: #e0e0e0;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pagination-info {
+  color: #e0e0e0;
+  font-size: 14px;
+  min-width: 60px;
+  text-align: center;
 }

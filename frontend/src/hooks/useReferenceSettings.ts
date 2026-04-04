@@ -77,7 +77,7 @@ export function useReferenceSettings() {
     const updateReferenceValue = useCallback(
         async (valueId: string, newValue: string) => {
             try {
-                const response = await put(`/reference/update_value/${valueId}`, { value: newValue });
+                const response = await put(`/reference/update_value/${valueId}`, { id: valueId, value: newValue });
                 return response.data;
             } catch (error) {
                 return { success: false, error: (error as Error).message };
@@ -86,7 +86,7 @@ export function useReferenceSettings() {
         }, [put]
     );
 
-    const { data: referenceTypes, isPending: isReferenceTypesPending, error: referenceTypesError } = useQuery({
+    const { data: referenceTypes, isPending: isReferenceTypesPending, error: referenceTypesError, refetch: refetchReferenceTypes } = useQuery({
         queryKey: ['reference_types'],
         queryFn: getReferenceTypes,
     })
@@ -95,6 +95,7 @@ export function useReferenceSettings() {
         referenceTypes,
         isReferenceTypesPending,
         referenceTypesError,
+        refetchReferenceTypes,
 
         getReferenceListByType,
         deleteReferenceType,
