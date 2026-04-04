@@ -8,17 +8,17 @@ def list_reference_types_(db: Session):
 
 def get_references_by_type_(db: Session, reference_type_id: str):
     return db.query(PictureAttributeReference).filter(
-        PictureAttributeReference.reference_value_presetting_type_id == reference_type_id
+        PictureAttributeReference.reference_type_id == reference_type_id
     ).all()
 
 def get_reference_type_name_by_id(db: Session, reference_type_id: str):
     ref_type = db.query(PictureAttributeReferenceType).filter(
         PictureAttributeReferenceType.id == reference_type_id
     ).first()
-    return ref_type.reference_value if ref_type else None
+    return ref_type.reference_type_name if ref_type else None
 
 def create_reference_type_(db: Session, reference_type: str):
-    new_reference_type = PictureAttributeReferenceType(reference_value=reference_type)
+    new_reference_type = PictureAttributeReferenceType(reference_type_name=reference_type)
     db.add(new_reference_type)
     db.commit()
     db.refresh(new_reference_type)
@@ -37,7 +37,7 @@ def delete_reference_type_(db: Session, reference_type_id: str):
 def add_value_to_reference_(db: Session, reference_type_id: str, value: str):
     new_ref = PictureAttributeReference(
         reference_value=value,
-        reference_value_presetting_type_id=reference_type_id,
+        reference_type_id=reference_type_id,
     )
     db.add(new_ref)
     db.commit()

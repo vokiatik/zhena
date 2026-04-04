@@ -122,10 +122,10 @@ def save_reference_dataframe_to_db(db: Session, df, process_id=None) -> int:
         if not reference_value or not reference_presetting_type:
             continue
 
-        reference_type = db.query(PictureAttributeReferenceType).filter(PictureAttributeReferenceType.reference_value == reference_presetting_type).first()
+        reference_type = db.query(PictureAttributeReferenceType).filter(PictureAttributeReferenceType.reference_type_name == reference_presetting_type).first()
         
         if not reference_type:
-            db_type = PictureAttributeReferenceType(reference_value=reference_presetting_type)
+            db_type = PictureAttributeReferenceType(reference_type_name=reference_presetting_type)
             db.add(db_type)
             db.commit()
             db.refresh(db_type)
@@ -133,7 +133,7 @@ def save_reference_dataframe_to_db(db: Session, df, process_id=None) -> int:
 
         db_row = PictureAttributeReference(
             reference_value=reference_value,
-            reference_value_presetting_type_id=reference_type.id,
+            reference_type_id=reference_type.id,
             process_id=process_id,
         )
         rows.append(db_row)

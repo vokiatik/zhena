@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from sweater.database.references_db import get_reference_db
-from sweater.routes.auth import get_current_user
 from sweater.middleware.role_middleware import require_roles
 from sweater.schemas.process.process_instance_schema import CreateLinkProcess, UpdateProcessInstance
 from sweater.services.process.process_instance_service import (

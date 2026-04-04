@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table('picture_attribute_reference',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('reference_value', sa.Text(), nullable=False),
-    sa.Column('reference_value_presetting_type_id', sa.UUID(), nullable=False),
+    sa.Column('reference_type_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
