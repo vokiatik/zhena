@@ -10,6 +10,7 @@ export default function FileUploadPage(): React.ReactElement {
     const dropdownOptions = [
         { value: "", label: "Select file type" },
         { value: "retail", label: "Retail Data" },
+        { value: "reference", label: "Reference Data" },
         // Future options can be added here
     ];
 
@@ -38,7 +39,7 @@ export default function FileUploadPage(): React.ReactElement {
     return (
         <div className="file-upload-page">
             <div className="file-upload-page__container">
-                <h1 className="file-upload-page__title">Retail File Upload</h1>
+                <h1 className="file-upload-page__title">File Upload</h1>
                 <p className="file-upload-page__description">
                     Upload a CSV or Excel file and save it into PostgreSQL.
                 </p>
