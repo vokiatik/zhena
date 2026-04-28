@@ -38,3 +38,9 @@
   min-width: 60px;
   text-align: center;
 }
+
+.reference-settings-container {
+  padding: 20px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+}

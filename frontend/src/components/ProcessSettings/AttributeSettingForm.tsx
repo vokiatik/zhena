@@ -4,6 +4,8 @@ import { useAttributesSettings } from "../../hooks/useAttributesSettings";
 import type { ProcessingItem } from "../../types/processing";
 import type { ProcessSettingsResult } from "../../types/ProcessSettingsResult";
 import AttributeView from "./AttributeView";
+import AttributeViewNoUpdate from "./AttributeViewNoUpdate";
+import type { PictureAttribute } from "../../types/picture_attributes";
 
 interface AttributeSettingsFormProps {
     curentProcess?: ProcessingItem;
@@ -24,6 +26,7 @@ export default function AttributeSettingsForm({
     } = useAttributesSettings(curentProcess?.type, curentProcess?.id);
 
     const [showAttributeView, setShowAttributeView] = useState(false);
+    const [editAttribute, setEditAttribute] = useState<PictureAttribute | undefined>(undefined);
 
     const handleAddNewAttribute = async () => {
         if (!curentProcess?.id && handleSaveNewProcess) {
@@ -48,32 +51,46 @@ export default function AttributeSettingsForm({
                         UpdateProcessAttribute={UpdateProcessAttribute}
                         CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
                         setShowAttributeView={setShowAttributeView}
-                        DeleteProcessAttribute={DeleteProcessAttribute}
                     />
                 )}
                 <button
                     onClick={() => handleAddNewAttribute()}
                     className="button-primary"
-                    disabled={!curentProcess}
+                    disabled={!curentProcess?.id}
                 >
                     {showAttributeView ? "Cancel" : "Add Attribute"}
                 </button>
                 <label className="attribute-add-btn-note">*You need to save the process before adding attributes</label>
             </div>
-            {processAttributes?.map((attribute) => (
-                <div key={attribute.id} className="attribute-item">
-                    <AttributeView
-                        attribute={attribute}
-                        tableColumns={tableColumns}
-                        referenceList={referenceList}
-                        AddNewProcessAttribute={AddNewProcessAttribute}
-                        UpdateProcessAttribute={UpdateProcessAttribute}
-                        CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
-                        setShowAttributeView={setShowAttributeView}
-                        DeleteProcessAttribute={DeleteProcessAttribute}
-                    />
-                </div>
-            ))}
+            {processAttributes?.map((attribute) => {
+                if (attribute.id === editAttribute?.id) {
+                    return (
+                        <div key={attribute.id} className="attribute-item">
+                            <AttributeView
+                                attribute={editAttribute}
+                                tableColumns={tableColumns}
+                                referenceList={referenceList}
+                                curentProcessId={curentProcess?.id}
+                                setEditAttribute={setEditAttribute}
+                                AddNewProcessAttribute={AddNewProcessAttribute}
+                                UpdateProcessAttribute={UpdateProcessAttribute}
+                                CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
+                                setShowAttributeView={setShowAttributeView}
+                            />
+                        </div>
+                    );
+                }
+                return (
+                    <div key={attribute.id} className="attribute-item">
+                        <AttributeViewNoUpdate
+                            attribute={attribute}
+                            setEditAttribute={setEditAttribute}
+                            DeleteProcessAttribute={DeleteProcessAttribute}
+                            curentProcessId={curentProcess?.id}
+                        />
+                    </div>
+                );
+            })}
         </div>
     );
 }

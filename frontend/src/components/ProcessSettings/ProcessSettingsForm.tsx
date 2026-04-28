@@ -6,6 +6,7 @@ import CustomModal from "../shared/modal/CustomModal";
 import CustomDropdown from "../shared/dropdown/CustomDropdown";
 import { useState } from "react";
 import type { ProcessSettingsResult } from "../../types/ProcessSettingsResult";
+import { useToast } from "../../contexts/ToastContext";
 
 interface ProcessSettingsFormProps {
     ProcessItem: ProcessingItem | null;
@@ -14,6 +15,8 @@ interface ProcessSettingsFormProps {
 }
 
 export default function ProcessSettingsForm({ ProcessItem, setShowNewProcessModal, CreateProcess }: ProcessSettingsFormProps) {
+    const { showToast } = useToast();
+
     const {
         UpdateProcess,
         availableTypes,
@@ -30,14 +33,32 @@ export default function ProcessSettingsForm({ ProcessItem, setShowNewProcessModa
         } as ProcessingItem
     );
 
-    const handleSave = () => {
-        let res = null;
-        if (ProcessItem) {
-            res = UpdateProcess(currentProcess);
-        } else {
-            res = CreateProcess(currentProcess);
+    const handleSave = async () => {
+        if (currentProcess.type === "") {
+            showToast("Please select a process type.", "error");
+            return {} as ProcessSettingsResult;
         }
-        setShowNewProcessModal(false);
+        if (currentProcess.title === "") {
+            showToast("Please enter a process title.", "error");
+            return {} as ProcessSettingsResult;
+        }
+        if (currentProcess.description === "") {
+            showToast("Please enter a process description.", "error");
+            return {} as ProcessSettingsResult;
+        }
+        let res: ProcessSettingsResult;
+        if (ProcessItem) {
+            res = await UpdateProcess(currentProcess);
+        } else {
+            res = await CreateProcess(currentProcess);
+        }
+        console.log("Process save result:", res);
+        if (res.success) {
+            showToast(`Process ${ProcessItem ? "updated" : "created"} successfully`, "success");
+            setShowNewProcessModal(false);
+        } else {
+            showToast(`Failed to ${ProcessItem ? "update" : "create"} process: ${res.error}`, "error");
+        }
         return res;
     };
 

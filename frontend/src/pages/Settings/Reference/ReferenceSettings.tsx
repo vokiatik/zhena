@@ -26,6 +26,7 @@ export default function ReferenceSettings() {
     console.log("Loaded reference types:", referenceTypes);
     return (
         <div className="reference-settings">
+            <h1>Reference Settings</h1>
             <CustomDropdown
                 label="Select Reference Type"
                 options={referenceTypes.map((ref: referenceListType) => ({ value: ref.id, label: ref.reference_type_name }))}

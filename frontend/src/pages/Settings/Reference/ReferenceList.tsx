@@ -54,7 +54,7 @@ export default function ReferenceList({
     );
 
     return (
-        <div>
+        <div className="reference-settings-container">
             <h2>Reference List for Type: {referenceTypeName}</h2>
             {isReferenceListPending && <TvLoading />}
             {referenceListError && <p>Error: {referenceListError.message}</p>}

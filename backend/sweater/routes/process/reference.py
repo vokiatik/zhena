@@ -18,7 +18,7 @@ router = APIRouter(prefix="/reference", tags=["process_attributes_reference"])
 @router.get("/types_list")
 def list_reference_types(db: Session = Depends(get_reference_db)):
     reference_types_list = list_reference_types_(db)
-    return {"success": True, "data": reference_types_list}
+    return reference_types_list
 
 @router.get("/{reference_type_id}")
 def get_references_by_type(reference_type_id: str, db: Session = Depends(get_reference_db)):

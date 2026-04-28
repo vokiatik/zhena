@@ -12,11 +12,11 @@ interface AttributeViewProps {
     tableColumns?: string[] | null;
     referenceList: referenceListType[] | undefined;
     curentProcessId?: string;
+    setEditAttribute?: (attribute: PictureAttribute | undefined) => void;
     AddNewProcessAttribute: (attribute: PictureAttribute) => Promise<void>;
     UpdateProcessAttribute: (attribute: PictureAttribute) => Promise<void>;
     CreateNewAttributeReferenceType: (referenceType: string) => Promise<void>;
     setShowAttributeView: (show: boolean) => void;
-    DeleteProcessAttribute: (processId: string, attributeId: string) => Promise<void>;
 }
 
 export default function AttributeView({
@@ -24,10 +24,10 @@ export default function AttributeView({
     tableColumns,
     referenceList,
     curentProcessId,
+    setEditAttribute,
     AddNewProcessAttribute,
     UpdateProcessAttribute,
     setShowAttributeView,
-    DeleteProcessAttribute,
 }: AttributeViewProps) {
     const defaultAttribute: PictureAttribute = {
         id: "",
@@ -49,6 +49,9 @@ export default function AttributeView({
             AddNewProcessAttribute(newAttribute);
         }
         setShowAttributeView(false);
+    };
+    const HandleDeleteAttribute = () => {
+        setEditAttribute && setEditAttribute(undefined);
     };
 
     return (
@@ -88,14 +91,15 @@ export default function AttributeView({
                 >
                     Save Attribute
                 </button>
-                <button
-                    onClick={
-                        () => DeleteProcessAttribute(newAttribute.process_id, newAttribute.id)
-                    }
-                    className="button-danger"
-                >
-                    Delete Attribute
-                </button>
+
+                {attribute?.id &&
+                    <button
+                        onClick={HandleDeleteAttribute}
+                        className="button-danger"
+                    >
+                        Cancel editing
+                    </button>
+                }
             </div>
         </div>
     );
