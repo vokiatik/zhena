@@ -71,3 +71,17 @@ export default defineConfig([
   },
 ])
 ```
+
+i need u to update the process of uploading file. 
+
+when file has been uploaded code need to check if there is any settings in process settings according to this exact process (with the tag file upload). Then if so i need it to check if there is attribute settings. If so i need to verify if all the values from the file in the column specifyed in attribute settings are already saved in the database in the reference table with a specific reference type. If so just continue. I need to do that for all the columns specifyied in the settings. then If not all the values are presented i need a func to return a list of all the values which are not in the db with corresponding type and then send a response to frontend that there have been added new values. 
+
+on the frontend i need a modal being showed with a text like there have been found new dict values. and i need frontend to show this list in a modal that are not hiding untill user reacts. 
+
+a need a table with 4 columns first column is a type_name and also i need to paint table to different background colors according to the values in that field. next column is a value that could be added. next i need a checkbox which is default as true meaning that this value will be saved. and the last column is an empty dropdown with values from reference table with exact type. Default is none. If iuts being changed to non null value corresponding checkbox is false. if it is none checkbox is true. And i need 2 buttons with different actions. One is save and proceed other is don't save and stop. first one need to send the data that user has chosen. Also if there is more than 20 rows in the table i need to add a frontend paggination.
+
+first one sends a request to the backend that data has to be saved and file should be proceeded. So then i need a function to save this values according to their types and also one func that changes choosen values in the columns to the new ones. And then file being proceeded. 
+
+if stop button was pressed i need to stop the file uploading function. 
+
+so i need to update statuses of file processing as well. so file could be on hold intill user decides what to do with all the new values. 

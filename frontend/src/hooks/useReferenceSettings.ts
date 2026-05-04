@@ -9,11 +9,12 @@ export function useReferenceSettings() {
 
     const getReferenceTypes = useCallback(async () => {
         const response = await get<ProcessSettingsResult>(`/reference/types_list`);
-        if (response.data.success) {
-            return response.data.data;
-        } else {
-            throw new Error(response.data.error || "Failed to fetch reference types");
-        };
+        if (response.status !== 200) {
+            console.error("Error fetching reference types:", response);
+            throw new Error("Failed to fetch reference types");
+        } else{
+            return response.data;
+        }
     }, [get]);
 
     const getReferenceListByType = useCallback(async (typeId: string) => {

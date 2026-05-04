@@ -23,18 +23,18 @@ export default function ReferenceSettings() {
         return <p>Error loading reference types: {referenceTypesError.message}</p>;
     };
 
-    console.log("Loaded reference types:", referenceTypes);
     return (
         <div className="reference-settings">
             <h1>Reference Settings</h1>
             <CustomDropdown
                 label="Select Reference Type"
-                options={referenceTypes.map((ref: referenceListType) => ({ value: ref.id, label: ref.reference_type_name }))}
+                options={Array.isArray(referenceTypes) ? referenceTypes.map((ref: referenceListType) => ({ value: ref.id, label: ref.reference_type_name })) : []}
                 defaultValue={currentReferenceType?.id || ""}
                 onChange={(value) => {
-                    const selectedType = referenceTypes.find((ref: referenceListType) => ref.id === value);
+                    const selectedType = Array.isArray(referenceTypes) ? referenceTypes.find((ref: referenceListType) => ref.id === value) : null;
                     setCurrentReferenceType(selectedType ? { id: selectedType.id, name: selectedType.reference_type_name } : null);
                 }}
+                searchable
             />
 
             {currentReferenceType &&

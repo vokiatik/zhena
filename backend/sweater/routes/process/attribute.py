@@ -10,6 +10,7 @@ from sweater.services.process.attributes_service import (
     update_process_attribute_,
     delete_process_attribute_,
 )
+from sweater.services.process.reference_service import get_reference_type_name_by_id
 from sweater.models.process_settings.Process_type_model import ProcessType
 from sweater.database.references_db import get_reference_db
 from sweater.routes.auth import get_current_user
@@ -36,7 +37,20 @@ def list_table_columns(
 @router.get("/{process_id}")
 def get_process_attributes(process_id: str, user: dict = Depends(require_roles("admin")), db: Session = Depends(get_reference_db)):
     attributes = get_process_attributes_by_process_id(db, process_id)
-    return attributes
+    result = []
+    for attr in attributes:
+        attr_data = {
+            "id": str(attr.id),
+            "title": attr.title,
+            "is_shown": attr.is_shown,
+            "is_editable": attr.is_editable,
+            "created_at": str(attr.created_at) if attr.created_at else None,
+            "process_id": str(attr.process_id),
+            "reference_type_id": str(attr.reference_type_id) if attr.reference_type_id else None,
+            "reference_type_name": get_reference_type_name_by_id(db, str(attr.reference_type_id)) if attr.reference_type_id else None,
+        }
+        result.append(attr_data)
+    return result
 
 @router.post("/create")
 def create_attribute(attribute: CreateProcessAttribute, user: dict = Depends(require_roles("admin")), db: Session = Depends(get_reference_db)):
