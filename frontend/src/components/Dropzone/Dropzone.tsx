@@ -1,5 +1,7 @@
 import React, { useRef, useState } from "react";
 import { apiClient } from "../../api";
+import type { ConfirmDecision, ValidationRequiredResponse } from "../../types/file_upload_validation";
+import NewDictValuesModal from "./NewDictValuesModal";
 import "./Dropzone.css";
 
 type UploadState = "idle" | "uploading" | "success" | "error";
@@ -16,6 +18,8 @@ export default function FileUploadDropzone({ filetype }: { filetype?: string }):
     const [dragOver, setDragOver] = useState(false);
     const [uploadState, setUploadState] = useState<UploadState>("idle");
     const [message, setMessage] = useState<string>("");
+    const [pendingValidation, setPendingValidation] = useState<ValidationRequiredResponse | null>(null);
+    const pendingFileRef = useRef<File | null>(null);
 
     const handleFile = async (file: File) => {
         if (!isAllowedFile(file)) {
@@ -32,11 +36,59 @@ export default function FileUploadDropzone({ filetype }: { filetype?: string }):
             filetype && filedata.append("filetype", filetype);
 
             const result = await apiClient.post("/upload/retail-file", filedata, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
+                headers: { "Content-Type": "multipart/form-data" },
             });
-            console.log(result);
+
+            if (result?.data?.status === "needs_validation") {
+                // Pause and show the validation modal – keep the file for re-upload
+                pendingFileRef.current = file;
+                setPendingValidation(result.data as ValidationRequiredResponse);
+                setUploadState("idle");
+                setMessage("");
+                return;
+            }
+
+            if (result?.data?.ok) {
+                setUploadState("success");
+                setMessage(
+                    result?.data?.message ||
+                    `Upload completed successfully. Inserted ${result?.data?.inserted_rows ?? 0} rows.`
+                );
+            } else {
+                setUploadState("error");
+                setMessage(result?.data?.message || "Upload failed.");
+            }
+        } catch (error: any) {
+            const backendMessage =
+                error?.response?.data?.detail ||
+                error?.response?.data?.message ||
+                error?.message ||
+                "Upload failed.";
+
+            setUploadState("error");
+            setMessage(backendMessage);
+        }
+    };
+
+    const handleConfirmDecisions = async (decisions: ConfirmDecision[]) => {
+        const file = pendingFileRef.current;
+        if (!file) return;
+
+        setPendingValidation(null);
+
+        try {
+            setUploadState("uploading");
+            setMessage("Uploading file...");
+
+            const filedata = new FormData();
+            filedata.append("file", file);
+            filetype && filedata.append("filetype", filetype);
+            filedata.append("decisions", JSON.stringify(decisions));
+
+            const result = await apiClient.post("/upload/retail-file/confirm", filedata, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
             if (result?.data?.ok) {
                 setUploadState("success");
                 setMessage(
@@ -101,45 +153,14 @@ export default function FileUploadDropzone({ filetype }: { filetype?: string }):
     ]
         .filter(Boolean)
         .join(" ");
-
-    // <div className="file-upload">
-    //   <input
-    //     ref={inputRef}
-    //     type="file"
-    //     accept=".csv,.xlsx,.xls"
-    //     className="file-upload__input"
-    //     onChange={onInputChange}
-    //   />
-
-    //   <div
-    //     className={dropzoneClassName}
-    //     onClick={openFileDialog}
-    //     onDragOver={(e) => {
-    //       e.preventDefault();
-    //       if (uploadState !== "uploading") {
-    //         setDragOver(true);
-    //       }
-    //     }}
-    //     onDragLeave={() => setDragOver(false)}
-    //     onDrop={onDrop}
-    //   >
-    //     <h3 className="file-upload-dropzone__title">Upload CSV or Excel file</h3>
-    //     <p className="file-upload-dropzone__text">
-    //       Drag and drop 1 file here, or click to select.
-    //     </p>
-    //     <p className="file-upload-dropzone__hint">
-    //       Allowed formats: .csv, .xlsx, .xls
-    //     </p>
-
-    //     {uploadState === "uploading" && (
-    //       <p className="file-upload-dropzone__status">Processing...</p>
-    //     )}
-    //   </div>
-
-    //   {message && <div className={messageClassName}>{message}</div>}
-    // </div>
     return (
         <div className="file-upload-dropzone">
+            {pendingValidation && (
+                <NewDictValuesModal
+                    validationData={pendingValidation}
+                    onConfirm={handleConfirmDecisions}
+                />
+            )}
             <input
                 ref={inputRef}
                 type="file"

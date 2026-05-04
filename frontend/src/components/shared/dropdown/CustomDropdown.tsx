@@ -9,6 +9,7 @@ interface DropdownOption {
 interface CustomDropdownProps {
     label?: string;
     defaultValue?: string;
+    value?: string;
     options?: DropdownOption[];
     onChange?: (value: string) => void;
     searchable?: boolean;
@@ -18,6 +19,7 @@ interface CustomDropdownProps {
 export default function CustomDropdown({
     label,
     defaultValue,
+    value,
     options = [],
     onChange,
     searchable = false,
@@ -26,9 +28,16 @@ export default function CustomDropdown({
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [selected, setSelected] = useState<DropdownOption | null>(
-        options.find((o) => o.value === defaultValue) ?? null
+        options.find((o) => o.value === (value ?? defaultValue)) ?? null
     );
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // Sync when controlled value changes externally
+    useEffect(() => {
+        if (value !== undefined) {
+            setSelected(value ? (options.find((o) => o.value === value) ?? null) : null);
+        }
+    }, [value, options]);
 
     // Close on outside click
     useEffect(() => {

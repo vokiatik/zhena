@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FileUploadDropzone } from "../../components/Dropzone";
 import "./FileUploadPage.css";
 import { useParams } from "react-router";
+import CustomDropdown from "../../components/shared/dropdown/CustomDropdown";
 
 export default function FileUploadPage(): React.ReactElement {
     const { defaultfiletype } = useParams<{ defaultfiletype: string }>();
@@ -13,29 +14,6 @@ export default function FileUploadPage(): React.ReactElement {
         { value: "reference", label: "Reference Data" },
         // Future options can be added here
     ];
-
-    const handleDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFiletype(e.target.value);
-    }
-
-    const renderDropdown = () => (
-        <div className="file-upload-dropdown">
-            <label htmlFor="filetype" className="file-upload-dropdown__label">File Type:</label>
-            <select
-                id="filetype"
-                value={filetype}
-                onChange={handleDropdownChange}
-                className="file-upload-dropdown__select"
-            >
-                {dropdownOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </select>
-        </div>
-    );
-
     return (
         <div className="file-upload-page">
             <div className="file-upload-page__container">
@@ -44,7 +22,13 @@ export default function FileUploadPage(): React.ReactElement {
                     Upload a CSV or Excel file and save it into PostgreSQL.
                 </p>
 
-                {!defaultfiletype && renderDropdown()}
+                {!defaultfiletype &&
+                    <CustomDropdown
+                        label="File Type"
+                        options={dropdownOptions}
+                        defaultValue={filetype}
+                        onChange={(value) => setFiletype(value)}
+                    />}
                 {(filetype || defaultfiletype) &&
                     <FileUploadDropzone filetype={filetype || defaultfiletype} />}
             </div>
