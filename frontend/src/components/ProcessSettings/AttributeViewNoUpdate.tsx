@@ -45,6 +45,10 @@ export default function AttributeViewNoUpdate({
                     <span className="attribute-label">Reference Type:</span>
                     <span className="attribute-value">{attribute?.reference_type_name || "None"}</span>
                 </div>
+                <div className="label-value-pair">
+                    <span className="attribute-label">Input Type:</span>
+                    <span className="attribute-value">{attribute?.input_type || "text"}</span>
+                </div>
             </div>
 
             <div className="attribute-view-buttons-no-update">

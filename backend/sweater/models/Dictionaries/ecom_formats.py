@@ -3,8 +3,8 @@ from sqlalchemy import Column, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sweater.database.references_db import Reference_Base as Base
 
-class SOV(Base):
-    __tablename__ = "SOV"
+class EcomFormat(Base):
+    __tablename__ = "ecom_format"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 

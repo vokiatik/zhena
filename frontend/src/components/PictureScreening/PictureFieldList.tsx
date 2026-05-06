@@ -1,5 +1,6 @@
 import type { PictureAttribute } from "../../types/picture_attributes";
 import CustomDropdown from "../shared/dropdown/CustomDropdown";
+import MultiSelectField from "./MultiSelectField";
 
 interface PictureFieldListProps {
     fields: Record<string, string>;
@@ -21,7 +22,10 @@ export default function PictureFieldList({ fields, settingsMap, hasSettings, onF
                     if (attr && !attr.is_shown) return null;
 
                     const isDisabled = attr ? !attr.is_editable : false;
-                    const hasDropdown = attr?.reference_type_id;
+                    const inputType = attr?.input_type ?? "text";
+                    const hasDropdown = attr?.reference_type_id && inputType === "dropdown";
+                    const hasMultiSelect = attr?.reference_type_id && inputType === "multi_select";
+                    const isNumber = inputType === "number";
 
                     return (
                         <label key={key} className="pv-field">
@@ -51,6 +55,22 @@ export default function PictureFieldList({ fields, settingsMap, hasSettings, onF
                                         Add new value
                                     </button>
                                 </div>
+                            ) : hasMultiSelect ? (
+                                <MultiSelectField
+                                    referenceValues={attr.reference_values ?? []}
+                                    value={value}
+                                    onChange={(val) => onFieldChange(key, val)}
+                                    disabled={isDisabled}
+                                    error={invalidFields.has(key)}
+                                />
+                            ) : isNumber ? (
+                                <input
+                                    type="number"
+                                    className="pv-field-input"
+                                    value={value}
+                                    disabled={isDisabled}
+                                    onChange={(e) => onFieldChange(key, e.target.value)}
+                                />
                             ) : (
                                 <input
                                     type="text"

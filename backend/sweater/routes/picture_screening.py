@@ -59,6 +59,7 @@ async def get_process_screening_settings(
             "reference_type_id": str(attr.reference_type_id) if attr.reference_type_id else None,
             "reference_type_name": None,
             "reference_values": [],
+            "input_type": attr.input_type if attr.input_type else "text",
         }
         if attr.reference_type_id:
             refs = get_references_by_type_(db, str(attr.reference_type_id))

@@ -13,7 +13,7 @@ from sweater.models.process_settings.Process_model import Process as _Process  #
 from sweater.models.process_settings.Process_attributes_crosstable_model import ProcessAttributes as _ProcessAttributes  # noqa: F401
 from sweater.models.process_settings.Process_type_model import ProcessType as _ProcessType  # noqa: F401
 from sweater.models.process_settings.Process_status_model import ProcessStatus as _ProcessStatus  # noqa: F401
-from sweater.models.Dictionaries.SOV import SOV as _SOV  # noqa: F401
+from sweater.models.Dictionaries.ecom_formats import EcomFormat as _EcomFormat  # noqa: F401
 from sweater.models.retail.Retail_model import Retail as _Retail  # noqa: F401
 from sweater.models.retail.Retail_model_additional import RetailAdditional as _RetailAdditional  # noqa: F401
 from sweater.models.retail.Analyst_processed_model import AnalystProcessed as _AnalystProcessed  # noqa: F401

@@ -43,6 +43,11 @@ def get_pictures_for_file_process(db: Session, process: Process):
             "ferrero_category_multibrand": r.ferrero_category_multibrand or "",
             "first_screen_date": str(r.first_screen_date) if r.first_screen_date else "",
             "last_screen_date": str(r.last_screen_date) if r.last_screen_date else "",
+            "advertising_category": r.advertising_category or "",
+            "is_seasonal": str(r.is_seasonal) if r.is_seasonal is not None else "",
+            "format": r.format or "",
+            "days_monitored_est": str(r.days_monitored_est) if r.days_monitored_est is not None else "",
+            "group_id": r.group_id or "",
             "verified": r.verified,
             "declined": r.declined,
         }
@@ -142,6 +147,11 @@ def get_pictures_for_link_process(db: Session, process: Process):
             "ferrero_category_multibrand": "",
             "first_screen_date": "",
             "last_screen_date": "",
+            "advertising_category": "",
+            "is_seasonal": "",
+            "format": "",
+            "days_monitored_est": "",
+            "group_id": "",
             "verified": url in processed_links,
         }
         if url in processed_links:

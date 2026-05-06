@@ -49,6 +49,7 @@ def get_process_attributes(process_id: str, user: dict = Depends(require_roles("
             "process_id": str(attr.process_id),
             "reference_type_id": str(attr.reference_type_id) if attr.reference_type_id else None,
             "reference_type_name": get_reference_type_name_by_id(db, str(attr.reference_type_id)) if attr.reference_type_id else None,
+            "input_type": attr.input_type if attr.input_type else "text",
         }
         result.append(attr_data)
     return result

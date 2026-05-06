@@ -13,7 +13,7 @@ TABLE_REGISTRY = {
     "analyst_processed": AnalystProcessed,
 }
 
-EXCLUDED_COLUMNS = {"id", "verified", "created_at", "user_id", "type", "process_id", "retail_processed_id"}
+EXCLUDED_COLUMNS = {"id", "verified", "declined", "created_at", "user_id", "type", "process_id", "retail_processed_id"}
 
 def get_available_tables():
     return list(TABLE_REGISTRY.keys())
@@ -22,7 +22,7 @@ def get_table_columns(table_name: str):
     model = TABLE_REGISTRY.get(table_name)
     if not model:
         return []
-    return [col.name for col in model.__table__.columns if col.name not in EXCLUDED_COLUMNS]
+    return [col.key for col in model.__table__.columns if col.key not in EXCLUDED_COLUMNS]
 
 def get_process_attributes_by_process_id(db: Session, process_id: str):
     return db.query(ProcessAttributes).filter(ProcessAttributes.process_id == process_id).all()
@@ -35,6 +35,7 @@ def create_process_attribute_(db: Session, attribute: CreateProcessAttribute):
         is_editable=attribute.is_editable,
         is_nullable=attribute.is_nullable,
         reference_type_id=attribute.reference_type_id,
+        input_type=attribute.input_type,
     )
     db.add(new_attribute)
     db.commit()
@@ -67,6 +68,8 @@ def update_process_attribute_(db: Session, process_id: str, attr: UpdateProcessA
         db_attr.is_nullable = attr.is_nullable
     if attr.reference_type_id is not None:
         db_attr.reference_type_id = attr.reference_type_id if attr.reference_type_id != "" else None
+    if attr.input_type is not None:
+        db_attr.input_type = attr.input_type
     db.commit()
     db.refresh(db_attr)
     return db_attr

@@ -14,4 +14,5 @@ export interface PictureAttribute {
   reference_type_id?: string;
   reference_type_name?: string;
   reference_values?: ReferenceValue[];
+  input_type?: string;
 }

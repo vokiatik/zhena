@@ -12,5 +12,6 @@ class ProcessAttributes(Base):
     is_editable = Column(Boolean, nullable=False, default=True)
     is_nullable = Column(Boolean, nullable=False, default=True)
     reference_type_id = Column(UUID(as_uuid=True), nullable=True)
+    input_type = Column(Text, nullable=False, default="text")
     process_id = Column(UUID(as_uuid=True), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

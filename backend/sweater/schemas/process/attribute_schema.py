@@ -8,6 +8,7 @@ class CreateProcessAttribute(BaseModel):
     is_editable: bool = True
     is_nullable: bool = True
     reference_type_id: Optional[str] = None
+    input_type: str = "text"
 
 class UpdateProcessAttribute(BaseModel):
     id: str
@@ -15,3 +16,4 @@ class UpdateProcessAttribute(BaseModel):
     is_editable: Optional[bool] = None
     is_nullable: Optional[bool] = None
     reference_type_id: Optional[str] = None
+    input_type: Optional[str] = None
