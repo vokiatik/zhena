@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ColumnDef, TableRow } from "../../hooks/useTableEditor";
 import RowUpdateModal from "./RowUpdateModal";
+import RowAddModal from "./RowAddModal";
 
 interface Props {
     columns: ColumnDef[];
@@ -15,6 +16,7 @@ interface Props {
     onSort: (column: string) => void;
     onDelete: (rowId: string) => void;
     onUpdate: (rowId: string, data: TableRow) => Promise<boolean>;
+    onAdd: (data: TableRow) => Promise<boolean>;
 }
 
 const MAX_PAGE_BUTTONS = 7;
@@ -38,9 +40,11 @@ export default function DataTable({
     onSort,
     onDelete,
     onUpdate,
+    onAdd,
 }: Props) {
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const [editingRow, setEditingRow] = useState<TableRow | null>(null);
+    const [addingRow, setAddingRow] = useState(false);
 
     function pageButtons(): (number | "…")[] {
         if (totalPages <= MAX_PAGE_BUTTONS) {
@@ -58,6 +62,17 @@ export default function DataTable({
 
     return (
         <>
+            {editable && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                    <button
+                        className="button-primary"
+                        style={{ padding: "6px 16px", fontSize: "0.85rem" }}
+                        onClick={() => setAddingRow(true)}
+                    >
+                        + Add Row
+                    </button>
+                </div>
+            )}
             <div className="ts-table-wrap">
                 <table className="ts-table">
                     <thead>
@@ -171,6 +186,18 @@ export default function DataTable({
                     onClose={() => setEditingRow(null)}
                     onSave={async (updated) => {
                         const ok = await onUpdate(String(editingRow.id), updated);
+                        return ok;
+                    }}
+                />
+            )}
+
+            {/* Add Modal */}
+            {addingRow && (
+                <RowAddModal
+                    schema={columns}
+                    onClose={() => setAddingRow(false)}
+                    onSave={async (data) => {
+                        const ok = await onAdd(data);
                         return ok;
                     }}
                 />

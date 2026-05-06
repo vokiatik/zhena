@@ -10,3 +10,7 @@ class TableSettingUpdate(BaseModel):
 
 class RowUpdateRequest(BaseModel):
     data: dict[str, Any]
+
+
+class RowCreateRequest(BaseModel):
+    data: dict[str, Any]

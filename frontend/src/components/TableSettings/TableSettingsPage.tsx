@@ -26,6 +26,7 @@ export default function TableSettingsPage() {
         fetchRows,
         deleteRow,
         updateRow,
+        addRow,
     } = useTableEditor();
 
     const [activeTab, setActiveTab] = useState<ActiveTab>("editor");
@@ -79,6 +80,15 @@ export default function TableSettingsPage() {
             fetchRows(selectedTable.table_name, page, PAGE_SIZE, sortColumn ?? undefined, sortDir);
         }
         return ok;
+    }
+
+    async function handleAdd(data: TableRow): Promise<boolean> {
+        if (!selectedTable) return false;
+        const row = await addRow(selectedTable.table_name, data);
+        if (row) {
+            fetchRows(selectedTable.table_name, page, PAGE_SIZE, sortColumn ?? undefined, sortDir);
+        }
+        return !!row;
     }
 
     const tableOptions = visibleTables.map((t) => ({
@@ -159,6 +169,7 @@ export default function TableSettingsPage() {
                             onSort={handleSort}
                             onDelete={handleDelete}
                             onUpdate={handleUpdate}
+                            onAdd={handleAdd}
                         />
                     )}
                 </>

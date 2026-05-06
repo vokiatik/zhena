@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from sweater.database.references_db import get_reference_db
 from sweater.middleware.role_middleware import require_roles
-from sweater.schemas.admin.table_editor_schema import TableSettingUpdate, RowUpdateRequest
+from sweater.schemas.admin.table_editor_schema import TableSettingUpdate, RowUpdateRequest, RowCreateRequest
 from sweater.services.admin.table_editor_service import (
     list_table_settings,
     update_table_setting,
@@ -12,6 +12,8 @@ from sweater.services.admin.table_editor_service import (
     get_table_rows,
     delete_table_row,
     update_table_row,
+    create_table_row,
+    get_fk_options,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -83,6 +85,19 @@ def get_visible_tables(db: Session = Depends(get_reference_db)):
 
 
 @router.get(
+    "/table-editor/fk-options/{ref_table}",
+    dependencies=[Depends(require_roles("admin"))],
+)
+def get_fk_options_route(
+    ref_table: str,
+    label_column: str,
+    db: Session = Depends(get_reference_db),
+):
+    options = get_fk_options(db, ref_table, label_column)
+    return {"success": True, "data": options}
+
+
+@router.get(
     "/table-editor/{table_name}/schema",
     dependencies=[Depends(require_roles("admin"))],
 )
@@ -109,6 +124,21 @@ def get_rows(
     if result["total"] == 0 and page > 1:
         return {"success": True, "data": result}
     return {"success": True, "data": result}
+
+
+@router.post(
+    "/table-editor/{table_name}/rows",
+    dependencies=[Depends(require_roles("admin"))],
+)
+def create_row(
+    table_name: str,
+    body: RowCreateRequest,
+    db: Session = Depends(get_reference_db),
+):
+    row = create_table_row(db, table_name, body.data)
+    if row is None:
+        raise HTTPException(status_code=400, detail="Insert failed or table not editable")
+    return {"success": True, "data": row}
 
 
 @router.delete(

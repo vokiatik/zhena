@@ -11,11 +11,27 @@ export interface TableSetting {
     editable: boolean;
 }
 
+export interface FkOption {
+    value: string;
+    label: string;
+}
+
+export interface ForeignKeyInfo {
+    table: string;
+    label_column: string;
+}
+
 export interface ColumnDef {
     name: string;
     type: string;
     nullable: boolean;
     primary_key: boolean;
+    /** True → auto-generated (PK, server default, deleted, created_at, …). Skip in Add form. */
+    auto_generated: boolean;
+    /** Scalar Python-level default to pre-fill in the form. Null if none or callable. */
+    default_value: unknown;
+    /** FK reference config, or null if not a foreign key. */
+    foreign_key: ForeignKeyInfo | null;
 }
 
 export interface TableRow {
@@ -28,7 +44,7 @@ export interface TableRowsResult {
 }
 
 export function useTableEditor() {
-    const { get, put, del } = useApi();
+    const { get, post, put, del } = useApi();
     const { showToast } = useToast();
 
     const [tableSettings, setTableSettings] = useState<TableSetting[]>([]);
@@ -160,6 +176,41 @@ export function useTableEditor() {
         [del, showToast]
     );
 
+    const addRow = useCallback(
+        async (tableName: string, data: TableRow): Promise<TableRow | null> => {
+            try {
+                const res = await post<{ success: boolean; data: TableRow }>(
+                    `/admin/table-editor/${tableName}/rows`,
+                    { data }
+                );
+                if (res.data.success) {
+                    showToast("Row added", "success");
+                    return res.data.data;
+                }
+                return null;
+            } catch {
+                showToast("Failed to add row", "error");
+                return null;
+            }
+        },
+        [post, showToast]
+    );
+
+    const fetchFkOptions = useCallback(
+        async (refTable: string, labelColumn: string): Promise<FkOption[]> => {
+            try {
+                const res = await get<{ success: boolean; data: FkOption[] }>(
+                    `/admin/table-editor/fk-options/${refTable}?label_column=${encodeURIComponent(labelColumn)}`
+                );
+                if (res.data.success) return res.data.data;
+                return [];
+            } catch {
+                return [];
+            }
+        },
+        [get]
+    );
+
     const updateRow = useCallback(
         async (tableName: string, rowId: string, data: TableRow) => {
             try {
@@ -195,6 +246,8 @@ export function useTableEditor() {
         isLoading,
         fetchRows,
         deleteRow,
+        addRow,
+        fetchFkOptions,
         updateRow,
     };
 }
