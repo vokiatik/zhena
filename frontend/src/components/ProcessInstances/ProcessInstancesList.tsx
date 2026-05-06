@@ -7,10 +7,8 @@ import type { ProcessInstance } from "../../types/process_instance";
 import TvLoading from "../shared/loading/TvLoading";
 import "./ProcessInstances.css";
 
-const STATUS_OPTIONS = ["initiated", "in progress", "done"];
-
 export default function ProcessInstancesList() {
-    const { processInstances, isPending, error, updateProcessInstance } = useProcessInstances();
+    const { processInstances, isPending, error, updateProcessInstance, statusOptions } = useProcessInstances();
     const { hasAnyRole } = useUser();
     const { showToast } = useToast();
     const navigate = useNavigate();
@@ -85,7 +83,7 @@ export default function ProcessInstancesList() {
                                     onChange={(e) => setEditStatus(e.target.value)}
                                     className="pi-status-select"
                                 >
-                                    {STATUS_OPTIONS.map((s) => (
+                                    {statusOptions.map((s) => (
                                         <option key={s} value={s}>{s}</option>
                                     ))}
                                 </select>

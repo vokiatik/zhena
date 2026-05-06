@@ -13,6 +13,7 @@ from sweater.services.picture.picture_verification_service import (
     unverifyPicture,
     get_pictures_for_process,
     verify_picture_for_process,
+    decline_picture_for_process,
 )
 from sweater.services.process.process_instance_service import get_process_instance_by_id
 from sweater.services.process.attributes_service import get_process_attributes_by_process_id
@@ -20,7 +21,7 @@ from sweater.services.process.reference_service import get_reference_type_name_b
 from sweater.models.process_settings.Picture_processing_model import ProcessSettings
 
 router = APIRouter(prefix="/pictures", tags=["pictures"])
-from sweater.schemas.picture.picture_verification_scheme import VerifyRequest
+from sweater.schemas.picture.picture_verification_scheme import VerifyRequest, DeclineRequest
 
 # ── Process-based routes ─────────────────────────────────────────
 
@@ -96,6 +97,20 @@ async def verify_process_picture(
         url=body.url,
         extra=body.extra,
         user_id=user["id"],
+    )
+    return result
+
+
+@router.post("/process/decline")
+async def decline_process_picture(
+    body: DeclineRequest,
+    user: dict = Depends(require_roles("admin", "marketing_specialist", "analyst")),
+    db: Session = Depends(get_reference_db),
+):
+    result = decline_picture_for_process(
+        db,
+        process_id=body.process_id,
+        picture_id=body.id,
     )
     return result
 

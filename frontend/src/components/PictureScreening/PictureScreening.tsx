@@ -4,6 +4,7 @@ import { usePictureScreeningSettings } from "../../hooks/usePictureScreeningSett
 import type { PictureItem } from "../../types/picture";
 import PictureViewer from "./PictureViewer";
 import VerifiedPictureModal from "./VerifiedPictureModal";
+import DeclinedPictureModal from "./DeclinedPictureModal";
 import "./PictureScreening.css";
 
 interface PictureScreeningProps {
@@ -12,18 +13,22 @@ interface PictureScreeningProps {
 }
 
 export default function PictureScreening({ role, processId }: PictureScreeningProps) {
-    const [activeTab, setActiveTab] = useState<"unverified" | "verified">("unverified");
+    const [activeTab, setActiveTab] = useState<"unverified" | "verified" | "declined">("unverified");
     const [selectedPicture, setSelectedPicture] = useState<PictureItem | null>(null);
+    const [selectedDeclined, setSelectedDeclined] = useState<PictureItem | null>(null);
 
     const {
         currentPicture,
         unverifiedPictures,
         verifiedPictures,
+        declinedPictures,
         total,
         isLoading,
         error,
         verifyAndNext,
         updateVerified,
+        declineAndNext,
+        updateDeclined,
     } = usePictureScreening(role, processId);
 
     const { settings, isLoading: settingsLoading } = usePictureScreeningSettings(processId);
@@ -57,6 +62,13 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                 >
                     Verified ({verifiedPictures.length})
                 </button>
+                <button
+                    className={`ps-tab${activeTab === "declined" ? " ps-tab--active" : ""}`}
+                    onClick={() => setActiveTab("declined")}
+                    type="button"
+                >
+                    Declined ({declinedPictures.length})
+                </button>
             </div>
 
             {activeTab === "unverified" && (
@@ -68,6 +80,7 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                             picture={currentPicture}
                             settings={settings}
                             onVerify={verifyAndNext}
+                            onDecline={processId ? declineAndNext : undefined}
                         />
                     )}
                 </>
@@ -93,12 +106,41 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                 </div>
             )}
 
+            {activeTab === "declined" && (
+                <div className="ps-declined-list">
+                    {declinedPictures.length === 0 ? (
+                        <p className="ps-done">No declined pictures yet.</p>
+                    ) : (
+                        declinedPictures.map((pic) => (
+                            <button
+                                key={pic.id}
+                                className="ps-declined-item"
+                                onClick={() => setSelectedDeclined(pic)}
+                                type="button"
+                                aria-label="View declined picture details"
+                            >
+                                <img src={String(pic.advertisement_id ?? "")} alt="declined" className="ps-declined-img" />
+                            </button>
+                        ))
+                    )}
+                </div>
+            )}
+
             {selectedPicture && (
                 <VerifiedPictureModal
                     picture={selectedPicture}
                     settings={settings}
                     onClose={() => setSelectedPicture(null)}
                     onSave={updateVerified}
+                />
+            )}
+
+            {selectedDeclined && (
+                <DeclinedPictureModal
+                    picture={selectedDeclined}
+                    settings={settings}
+                    onClose={() => setSelectedDeclined(null)}
+                    onSave={updateDeclined}
                 />
             )}
         </div>

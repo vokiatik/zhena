@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sweater.database.references_db import get_reference_db
 from sweater.middleware.role_middleware import require_roles
 from sweater.schemas.process.process_instance_schema import CreateLinkProcess, UpdateProcessInstance
+from sweater.models.process_settings.Process_status_model import ProcessStatus
 from sweater.services.process.process_instance_service import (
     list_process_instances,
     create_process_instance,
@@ -12,6 +13,15 @@ from sweater.services.process.process_instance_service import (
 )
 
 router = APIRouter(prefix="/process-instances", tags=["process_instances"])
+
+
+@router.get("/statuses")
+async def get_process_statuses(
+    user: dict = Depends(require_roles("admin", "marketing_specialist", "analyst")),
+    db: Session = Depends(get_reference_db),
+):
+    statuses = db.query(ProcessStatus).all()
+    return [s.process_status_name for s in statuses]
 
 
 @router.get("/list")

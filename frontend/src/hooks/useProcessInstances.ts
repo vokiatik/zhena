@@ -35,6 +35,11 @@ export function useProcessInstances() {
         [put]
     );
 
+    const fetchProcessStatuses = useCallback(async () => {
+        const response = await get<string[]>("/process-instances/statuses");
+        return response.data;
+    }, [get]);
+
     const {
         data: processInstances,
         isPending,
@@ -45,10 +50,16 @@ export function useProcessInstances() {
         queryFn: fetchProcessInstances,
     });
 
+    const { data: statusOptions } = useQuery({
+        queryKey: ["process_statuses"],
+        queryFn: fetchProcessStatuses,
+    });
+
     return {
         processInstances,
         isPending,
         error,
+        statusOptions: statusOptions ?? [],
         createLinkProcess,
         updateProcessInstance,
         refetch,

@@ -5,14 +5,14 @@ import CustomDropdown from "../shared/dropdown/CustomDropdown";
 
 const HIDDEN_FIELDS = new Set(["id", "verified", "created_at", "declined"]);
 
-interface VerifiedPictureModalProps {
+interface DeclinedPictureModalProps {
     picture: PictureItem;
     settings?: PictureAttribute[];
     onClose: () => void;
-    onSave: (pictureId: string, data: Record<string, string>) => Promise<void>;
+    onSave: (pictureId: string, data: Record<string, string>, newDeclined: boolean) => Promise<void>;
 }
 
-export default function VerifiedPictureModal({ picture, settings, onClose, onSave }: VerifiedPictureModalProps) {
+export default function DeclinedPictureModal({ picture, settings, onClose, onSave }: DeclinedPictureModalProps) {
     const rawFields = Object.entries(picture).filter(
         ([key, value]) =>
             !HIDDEN_FIELDS.has(key) &&
@@ -25,6 +25,7 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
     const [editFields, setEditFields] = useState<Record<string, string>>(
         () => Object.fromEntries(rawFields.map(([k, v]) => [k, String(v)]))
     );
+    const [declined, setDeclined] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState(false);
     const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
 
@@ -33,23 +34,25 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
     };
 
     const handleSave = async () => {
-        // Validate non-nullable editable fields
-        const invalid = new Set<string>();
-        for (const [key, value] of Object.entries(editFields)) {
-            const attr = settingsMap.get(key);
-            if (attr?.is_editable && !attr.is_nullable) {
-                const isEmpty = !value || value === "" || value === "undefined" || value === "null";
-                if (isEmpty) invalid.add(key);
+        if (!declined) {
+            // Proceeding as verified — validate required fields
+            const invalid = new Set<string>();
+            for (const [key, value] of Object.entries(editFields)) {
+                const attr = settingsMap.get(key);
+                if (attr?.is_editable && !attr.is_nullable) {
+                    const isEmpty = !value || value === "" || value === "undefined" || value === "null";
+                    if (isEmpty) invalid.add(key);
+                }
             }
-        }
-        if (invalid.size > 0) {
-            setInvalidFields(invalid);
-            return;
+            if (invalid.size > 0) {
+                setInvalidFields(invalid);
+                return;
+            }
         }
         setIsSaving(true);
         try {
-            await onSave(picture.id, editFields);
-            setIsEditing(false);
+            await onSave(picture.id, editFields, declined);
+            onClose();
         } finally {
             setIsSaving(false);
         }
@@ -58,6 +61,7 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
     const handleCancelEdit = () => {
         setEditFields(Object.fromEntries(rawFields.map(([k, v]) => [k, String(v)])));
         setInvalidFields(new Set());
+        setDeclined(true);
         setIsEditing(false);
     };
 
@@ -75,7 +79,7 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
                 <div className="vpm-image-container">
                     <img
                         src={String(picture.advertisement_id ?? "")}
-                        alt="verified"
+                        alt="declined"
                         className="vpm-image"
                     />
                 </div>
@@ -91,12 +95,10 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
                                     attr?.reference_type_id ? (
                                         <CustomDropdown
                                             options={
-                                                attr.reference_values?.map((r) => (
-                                                    {
-                                                        label: r.value,
-                                                        value: r.id
-                                                    }
-                                                )) ?? []
+                                                attr.reference_values?.map((r) => ({
+                                                    label: r.value,
+                                                    value: r.id,
+                                                })) ?? []
                                             }
                                             defaultValue={attr.reference_values?.find((r) => String(r.value) === value)?.id ?? undefined}
                                             onChange={(val) => {
@@ -122,14 +124,33 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
                             </div>
                         );
                     })}
+
+                    {/* Declined toggle */}
+                    <div className="vpm-field vpm-declined-toggle">
+                        <span className="vpm-field-label">Declined</span>
+                        <label className="vpm-toggle">
+                            <input
+                                type="checkbox"
+                                checked={declined}
+                                onChange={(e) => setDeclined(e.target.checked)}
+                                disabled={isSaving}
+                            />
+                            <span className="vpm-toggle-slider" />
+                        </label>
+                    </div>
                 </div>
                 <div className="vpm-actions">
                     {!isEditing ? (
-                        hasEditableFields && (
-                            <button className="button-secondary" onClick={() => setIsEditing(true)} type="button">
-                                Edit
+                        <>
+                            {hasEditableFields && (
+                                <button className="button-secondary" onClick={() => setIsEditing(true)} type="button">
+                                    Edit
+                                </button>
+                            )}
+                            <button className="button-primary" onClick={handleSave} disabled={isSaving} type="button">
+                                {isSaving ? "Saving…" : "Save"}
                             </button>
-                        )
+                        </>
                     ) : (
                         <>
                             <button className="button-primary" onClick={handleSave} disabled={isSaving} type="button">
@@ -145,4 +166,3 @@ export default function VerifiedPictureModal({ picture, settings, onClose, onSav
         </div>
     );
 }
-

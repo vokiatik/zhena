@@ -8,11 +8,12 @@ interface PictureViewerProps {
     picture: PictureItem;
     settings?: PictureAttribute[];
     onVerify: (data: Record<string, string>) => Promise<void>;
+    onDecline?: () => Promise<void>;
 }
 
-const HIDDEN_FIELDS = new Set(["id", "verified", "created_at"]);
+const HIDDEN_FIELDS = new Set(["id", "verified", "created_at", "declined"]);
 
-export default function PictureViewer({ picture, settings, onVerify }: PictureViewerProps) {
+export default function PictureViewer({ picture, settings, onVerify, onDecline }: PictureViewerProps) {
     const settingsMap = new Map(settings?.map((s) => [s.title, s]) ?? []);
     const hasSettings = settings && settings.length > 0;
 
@@ -30,6 +31,7 @@ export default function PictureViewer({ picture, settings, onVerify }: PictureVi
     const [fields, setFields] = useState<Record<string, string>>(() => getEditableFields(picture));
     const [showPreset, setShowPreset] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeclining, setIsDeclining] = useState(false);
     const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
 
     useEffect(() => {
@@ -58,7 +60,7 @@ export default function PictureViewer({ picture, settings, onVerify }: PictureVi
     };
 
     const handleSave = async () => {
-        if (isSaving) return;
+        if (isSaving || isDeclining) return;
         if (!validate()) return;
         setIsSaving(true);
         try {
@@ -68,8 +70,18 @@ export default function PictureViewer({ picture, settings, onVerify }: PictureVi
         }
     };
 
+    const handleDecline = async () => {
+        if (isSaving || isDeclining || !onDecline) return;
+        setIsDeclining(true);
+        try {
+            await onDecline();
+        } finally {
+            setIsDeclining(false);
+        }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !isSaving) {
+        if (e.key === "Enter" && !isSaving && !isDeclining) {
             e.preventDefault();
             handleSave();
         }
@@ -95,9 +107,14 @@ export default function PictureViewer({ picture, settings, onVerify }: PictureVi
             />
 
             <div className="pv-buttons">
-                <button className="button-primary" onClick={handleSave} disabled={isSaving} type="button">
-                    {isSaving ? "Saving…" : "OK"}
+                <button className="button-primary" onClick={handleSave} disabled={isSaving || isDeclining} type="button">
+                    {isSaving ? "Saving…" : "Proceed"}
                 </button>
+                {onDecline && (
+                    <button className="button-danger" onClick={handleDecline} disabled={isSaving || isDeclining} type="button">
+                        {isDeclining ? "Declining…" : "Decline"}
+                    </button>
+                )}
             </div>
 
             {showPreset && settings && (

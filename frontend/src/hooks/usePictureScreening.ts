@@ -5,12 +5,14 @@ import type { PictureItem } from "../types/picture";
 interface PicturesResponse {
   unverified: PictureItem[];
   verified: PictureItem[];
+  declined: PictureItem[];
 }
 
 export function usePictureScreening(role: string, processId?: string) {
   const { get, post } = useApi();
   const [unverifiedPictures, setUnverifiedPictures] = useState<PictureItem[]>([]);
   const [verifiedPictures, setVerifiedPictures] = useState<PictureItem[]>([]);
+  const [declinedPictures, setDeclinedPictures] = useState<PictureItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export function usePictureScreening(role: string, processId?: string) {
         const res = await get<PicturesResponse>(`/pictures/process/${processId}`);
         setUnverifiedPictures(res.data.unverified);
         setVerifiedPictures(res.data.verified);
+        setDeclinedPictures(res.data.declined ?? []);
       } else {
         const res = await get<PictureItem[]>(`/pictures/${role}`);
         setUnverifiedPictures(res.data);
@@ -46,7 +49,7 @@ export function usePictureScreening(role: string, processId?: string) {
     async (updatedData: Record<string, string>) => {
       if (!currentPicture) return;
 
-      const knownKeys = new Set(["id", "advertisement_id", "verified", "created_at"]);
+      const knownKeys = new Set(["id", "advertisement_id", "verified", "created_at", "declined"]);
       const extra: Record<string, string> = {};
       for (const [k, v] of Object.entries(updatedData)) {
         if (!knownKeys.has(k)) {
@@ -81,7 +84,7 @@ export function usePictureScreening(role: string, processId?: string) {
 
   const updateVerified = useCallback(
     async (pictureId: string, updatedData: Record<string, string>) => {
-      const knownKeys = new Set(["id", "advertisement_id", "verified", "created_at"]);
+      const knownKeys = new Set(["id", "advertisement_id", "verified", "created_at", "declined"]);
       const extra: Record<string, string> = {};
       for (const [k, v] of Object.entries(updatedData)) {
         if (!knownKeys.has(k)) extra[k] = v;
@@ -110,16 +113,65 @@ export function usePictureScreening(role: string, processId?: string) {
     [post, processId]
   );
 
+  const declineAndNext = useCallback(
+    async () => {
+      if (!currentPicture || !processId) return;
+      await post(`/pictures/process/decline`, {
+        id: currentPicture.id,
+        process_id: processId,
+      });
+      const declinedPicture: PictureItem = { ...currentPicture, verified: false, declined: true };
+      setDeclinedPictures((prev) => [...prev, declinedPicture]);
+      setUnverifiedPictures((prev) => prev.filter((_, i) => i !== currentIndex));
+    },
+    [currentPicture, post, processId, currentIndex]
+  );
+
+  const updateDeclined = useCallback(
+    async (pictureId: string, updatedData: Record<string, string>, newDeclined: boolean) => {
+      if (!processId) return;
+      if (newDeclined) {
+        // Re-decline: already declined, no action needed
+        setDeclinedPictures((prev) =>
+          prev.map((p) => (p.id === pictureId ? { ...p, ...updatedData, declined: true } : p))
+        );
+        return;
+      }
+      // Un-decline: treat as verified (proceed directly)
+      const knownKeys = new Set(["id", "advertisement_id", "verified", "created_at", "declined"]);
+      const extra: Record<string, string> = {};
+      for (const [k, v] of Object.entries(updatedData)) {
+        if (!knownKeys.has(k)) extra[k] = v;
+      }
+      await post(`/pictures/process/verify`, {
+        id: pictureId,
+        url: updatedData.advertisement_id,
+        process_id: processId,
+        extra,
+      });
+      const pic = declinedPictures.find((p) => p.id === pictureId);
+      if (pic) {
+        const verifiedPicture: PictureItem = { ...pic, ...updatedData, verified: true, declined: false };
+        setVerifiedPictures((prev) => [...prev, verifiedPicture]);
+        setDeclinedPictures((prev) => prev.filter((p) => p.id !== pictureId));
+      }
+    },
+    [post, processId, declinedPictures]
+  );
+
   return {
     unverifiedPictures,
     verifiedPictures,
+    declinedPictures,
     currentPicture,
     currentIndex,
-    total: unverifiedPictures.length + verifiedPictures.length,
+    total: unverifiedPictures.length + verifiedPictures.length + declinedPictures.length,
     isLoading,
     error,
     verifyAndNext,
     updateVerified,
+    declineAndNext,
+    updateDeclined,
     refetch: fetchPictures,
   };
 }

@@ -7,6 +7,7 @@
   justify-content: space-between;
   align-items: center;
   width: 90%;
+  gap: 16px;
 }
 
 .process-settings-list__item {
@@ -20,6 +21,7 @@
   margin-bottom: 12px;
   transition: all 0.2s ease;
   margin: auto;
+  margin-block: 16px;
 }
 
 .process-settings-list__item:hover {

@@ -25,4 +25,5 @@ class Retail(Base):
     # advertisement_id = Column("group_id", Text, nullable=True)
     
     verified = Column(Boolean, nullable=False, default=False)
+    declined = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

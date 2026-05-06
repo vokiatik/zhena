@@ -29,6 +29,7 @@ def get_pictures_for_file_process(db: Session, process: Process):
     set_process_total_items(db, str(process.id), len(all_rows))
     unverified = []
     verified = []
+    declined = []
     for r in all_rows:
         item = {
             "id": str(r.id),
@@ -43,12 +44,15 @@ def get_pictures_for_file_process(db: Session, process: Process):
             "first_screen_date": str(r.first_screen_date) if r.first_screen_date else "",
             "last_screen_date": str(r.last_screen_date) if r.last_screen_date else "",
             "verified": r.verified,
+            "declined": r.declined,
         }
-        if r.verified:
+        if r.declined:
+            declined.append(item)
+        elif r.verified:
             verified.append(item)
         else:
             unverified.append(item)
-    return {"unverified": unverified, "verified": verified}
+    return {"unverified": unverified, "verified": verified, "declined": declined}
 
 
 def verify_file_picture(db: Session, process: Process, picture_id: str, extra: dict, user_id: str):
@@ -85,6 +89,23 @@ def verify_file_picture(db: Session, process: Process, picture_id: str, extra: d
     # Check completion
     remaining = db.query(Retail).filter(
         Retail.process_id == process.id, Retail.verified == False
+    ).count()
+    return remaining
+
+
+def decline_file_picture(db: Session, process: Process, picture_id: str):
+    """Mark a retail row as declined."""
+    retail_row = db.query(Retail).filter(Retail.id == picture_id).first()
+    if not retail_row:
+        return None
+    retail_row.declined = True
+    retail_row.verified = False
+    db.commit()
+
+    remaining = db.query(Retail).filter(
+        Retail.process_id == process.id,
+        Retail.verified == False,
+        Retail.declined == False,
     ).count()
     return remaining
 
@@ -127,7 +148,7 @@ def get_pictures_for_link_process(db: Session, process: Process):
             verified.append(item)
         else:
             unverified.append(item)
-    return {"unverified": unverified, "verified": verified}
+    return {"unverified": unverified, "verified": verified, "declined": []}
 
 
 def verify_link_picture(db: Session, process: Process, url: str, extra: dict, user_id: str):
@@ -203,7 +224,7 @@ def get_pictures_for_analyst_process(db: Session, process: Process):
             verified.append(item)
         else:
             unverified.append(item)
-    return {"unverified": unverified, "verified": verified}
+    return {"unverified": unverified, "verified": verified, "declined": []}
 
 
 def verify_analyst_picture(db: Session, process: Process, retail_processed_id: str, extra: dict, user_id: str):
@@ -233,6 +254,29 @@ def verify_analyst_picture(db: Session, process: Process, retail_processed_id: s
 
 
 # ── Dispatch helpers ─────────────────────────────────────────────
+
+def decline_picture_for_process(db: Session, process_id: str, picture_id: str):
+    """Decline a picture for any process type."""
+    process = get_process_instance_by_id(db, process_id)
+    if not process:
+        return {"ok": False, "error": "Process not found"}
+
+    type_name = get_process_type_name(db, process)
+    status_name = get_process_status_name(db, process)
+
+    if status_name == "initiated":
+        update_process_status(db, process_id, "in progress")
+
+    if type_name == "file":
+        remaining = decline_file_picture(db, process, picture_id)
+    else:
+        return {"ok": False, "error": f"Decline not supported for process type: {type_name}"}
+
+    if remaining is None:
+        return {"ok": False, "error": "Picture not found"}
+
+    return {"ok": True, "remaining": remaining}
+
 
 def get_pictures_for_process(db: Session, process_id: str):
     """Get pictures for any process type."""
