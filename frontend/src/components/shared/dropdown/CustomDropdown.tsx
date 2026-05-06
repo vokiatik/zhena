@@ -8,12 +8,13 @@ interface DropdownOption {
 
 interface CustomDropdownProps {
     label?: string;
-    defaultValue?: string;
-    value?: string;
+    defaultValue?: string | null;
+    value?: string | null;
     options?: DropdownOption[];
     onChange?: (value: string) => void;
     searchable?: boolean;
     placeholder?: string;
+    error?: boolean;
 }
 
 export default function CustomDropdown({
@@ -24,11 +25,13 @@ export default function CustomDropdown({
     onChange,
     searchable = false,
     placeholder = "Select an option",
+    error = false,
 }: CustomDropdownProps) {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
+    const resolvedDefault = value ?? defaultValue;
     const [selected, setSelected] = useState<DropdownOption | null>(
-        options.find((o) => o.value === (value ?? defaultValue)) ?? null
+        resolvedDefault ? (options.find((o) => o.value === resolvedDefault) ?? null) : null
     );
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +41,7 @@ export default function CustomDropdown({
             setSelected(value ? (options.find((o) => o.value === value) ?? null) : null);
         }
     }, [value, options]);
+
 
     // Close on outside click
     useEffect(() => {
@@ -63,7 +67,7 @@ export default function CustomDropdown({
     }
 
     return (
-        <div className="dropdown-container" ref={containerRef}>
+        <div className={`dropdown-container${error ? " dropdown-error" : ""}`} ref={containerRef}>
             {label && <label className="dropdown-label">{label}</label>}
             <button
                 type="button"

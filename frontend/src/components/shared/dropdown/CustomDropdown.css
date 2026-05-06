@@ -124,3 +124,12 @@
 .dropdown-no-results:hover {
   background: transparent;
 }
+
+/* Error state */
+.dropdown-error .dropdown-trigger {
+  border-color: #f87171;
+}
+.dropdown-error .dropdown-trigger:hover,
+.dropdown-error .dropdown-trigger.open {
+  border-color: #ef4444;
+}

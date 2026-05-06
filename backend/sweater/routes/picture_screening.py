@@ -54,6 +54,7 @@ async def get_process_screening_settings(
             "title": attr.title,
             "is_shown": attr.is_shown,
             "is_editable": attr.is_editable,
+            "is_nullable": attr.is_nullable,
             "reference_type_id": str(attr.reference_type_id) if attr.reference_type_id else None,
             "reference_type_name": None,
             "reference_values": [],
@@ -94,7 +95,7 @@ async def verify_process_picture(
         picture_id=body.id,
         url=body.url,
         extra=body.extra,
-        user_id=user["user_id"],
+        user_id=user["id"],
     )
     return result
 

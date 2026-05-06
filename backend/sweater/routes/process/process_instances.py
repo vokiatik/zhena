@@ -32,7 +32,7 @@ async def create_link_process(
         db,
         type_name="link",
         comment=body.link,
-        initiator_id=user["user_id"],
+        initiator_id=user["id"],
     )
     return {
         "ok": True,

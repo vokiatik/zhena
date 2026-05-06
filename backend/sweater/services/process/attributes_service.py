@@ -33,6 +33,7 @@ def create_process_attribute_(db: Session, attribute: CreateProcessAttribute):
         title=attribute.title,
         is_shown=attribute.is_shown,
         is_editable=attribute.is_editable,
+        is_nullable=attribute.is_nullable,
         reference_type_id=attribute.reference_type_id,
     )
     db.add(new_attribute)
@@ -62,6 +63,8 @@ def update_process_attribute_(db: Session, process_id: str, attr: UpdateProcessA
         db_attr.is_shown = attr.is_shown
     if attr.is_editable is not None:
         db_attr.is_editable = attr.is_editable
+    if attr.is_nullable is not None:
+        db_attr.is_nullable = attr.is_nullable
     if attr.reference_type_id is not None:
         db_attr.reference_type_id = attr.reference_type_id if attr.reference_type_id != "" else None
     db.commit()

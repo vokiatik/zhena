@@ -1,24 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import type { PictureItem } from "../../types/picture";
 import type { PictureAttribute } from "../../types/picture_attributes";
-import { useSaveTimer } from "./useSaveTimer";
 import PictureFieldList from "./PictureFieldList";
-import SaveOverlay from "./SaveOverlay";
 import PresetModal from "./PresetModal";
 
 interface PictureViewerProps {
     picture: PictureItem;
-    previousPicture: PictureItem | null;
-    canCancelVerification?: boolean;
     settings?: PictureAttribute[];
     onVerify: (data: Record<string, string>) => Promise<void>;
-    onGoBack: () => void;
-    onUnverify: (data: Record<string, string>) => Promise<void>;
 }
 
 const HIDDEN_FIELDS = new Set(["id", "verified", "created_at"]);
 
-export default function PictureViewer({ picture, previousPicture, canCancelVerification, settings, onVerify, onGoBack, onUnverify }: PictureViewerProps) {
+export default function PictureViewer({ picture, settings, onVerify }: PictureViewerProps) {
     const settingsMap = new Map(settings?.map((s) => [s.title, s]) ?? []);
     const hasSettings = settings && settings.length > 0;
 
@@ -35,24 +29,49 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
 
     const [fields, setFields] = useState<Record<string, string>>(() => getEditableFields(picture));
     const [showPreset, setShowPreset] = useState<string | null>(null);
-
-    const { saving, start: startSave, reset: resetSave } = useSaveTimer(
-        useCallback(() => onVerify(fields), [fields, onVerify])
-    );
+    const [isSaving, setIsSaving] = useState(false);
+    const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         setFields(getEditableFields(picture));
-        resetSave();
-    }, [picture, getEditableFields, resetSave]);
+        setInvalidFields(new Set());
+    }, [picture, getEditableFields]);
 
     const handleFieldChange = (key: string, value: string) => {
         setFields((prev) => ({ ...prev, [key]: value }));
+        if (value && value !== "") {
+            setInvalidFields((prev) => { const next = new Set(prev); next.delete(key); return next; });
+        }
+    };
+
+    const validate = (): boolean => {
+        const invalid = new Set<string>();
+        for (const [key, value] of Object.entries(fields)) {
+            const attr = settingsMap.get(key);
+            if (attr?.is_editable && !attr.is_nullable) {
+                const isEmpty = !value || value === "" || value === "undefined" || value === "null";
+                if (isEmpty) invalid.add(key);
+            }
+        }
+        setInvalidFields(invalid);
+        return invalid.size === 0;
+    };
+
+    const handleSave = async () => {
+        if (isSaving) return;
+        if (!validate()) return;
+        setIsSaving(true);
+        try {
+            await onVerify(fields);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !saving) {
+        if (e.key === "Enter" && !isSaving) {
             e.preventDefault();
-            startSave();
+            handleSave();
         }
     };
 
@@ -62,12 +81,6 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
 
     return (
         <div className="pv-wrapper" onKeyDown={handleKeyDown}>
-            {previousPicture && (
-                <button className="button-secondary pv-back-btn" onClick={onGoBack} type="button">
-                    ← Get back
-                </button>
-            )}
-
             <div className="pv-image-container">
                 <img src={fields.advertisement_id} alt="screening" className="pv-image" />
             </div>
@@ -78,20 +91,14 @@ export default function PictureViewer({ picture, previousPicture, canCancelVerif
                 hasSettings={!!hasSettings}
                 onFieldChange={handleFieldChange}
                 onShowPreset={setShowPreset}
+                invalidFields={invalidFields}
             />
 
             <div className="pv-buttons">
-                {canCancelVerification && (
-                    <button className="button-danger" onClick={() => onUnverify(fields)} type="button">
-                        Cancel verification
-                    </button>
-                )}
-                <button className="button-primary" onClick={startSave} type="button">
-                    OK
+                <button className="button-primary" onClick={handleSave} disabled={isSaving} type="button">
+                    {isSaving ? "Saving…" : "OK"}
                 </button>
             </div>
-
-            {saving && <SaveOverlay />}
 
             {showPreset && settings && (
                 <PresetModal

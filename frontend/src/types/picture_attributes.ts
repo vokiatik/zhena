@@ -8,6 +8,7 @@ export interface PictureAttribute {
   title: string;
   is_shown: boolean;
   is_editable: boolean;
+  is_nullable: boolean;
   created_at: string;
   process_id: string;
   reference_type_id?: string;

@@ -19,20 +19,18 @@ from sweater.services.picture.cloud_service import list_cloud_pictures
 # ── File type ────────────────────────────────────────────────────
 
 def get_pictures_for_file_process(db: Session, process: Process):
-    """Get unverified retail rows for a file process."""
-    rows = (
+    """Get retail rows for a file process, split into unverified/verified."""
+    all_rows = (
         db.query(Retail)
-        .filter(Retail.process_id == process.id, Retail.verified == False)
+        .filter(Retail.process_id == process.id)
         .order_by(Retail.created_at)
         .all()
     )
-    set_process_total_items(
-        db, str(process.id),
-        db.query(Retail).filter(Retail.process_id == process.id).count()
-    )
-    result = []
-    for r in rows:
-        result.append({
+    set_process_total_items(db, str(process.id), len(all_rows))
+    unverified = []
+    verified = []
+    for r in all_rows:
+        item = {
             "id": str(r.id),
             "advertisement_id": r.advertisement_id or "",
             "retailer_clean": r.retailer_clean or "",
@@ -45,8 +43,12 @@ def get_pictures_for_file_process(db: Session, process: Process):
             "first_screen_date": str(r.first_screen_date) if r.first_screen_date else "",
             "last_screen_date": str(r.last_screen_date) if r.last_screen_date else "",
             "verified": r.verified,
-        })
-    return result
+        }
+        if r.verified:
+            verified.append(item)
+        else:
+            unverified.append(item)
+    return {"unverified": unverified, "verified": verified}
 
 
 def verify_file_picture(db: Session, process: Process, picture_id: str, extra: dict, user_id: str):
@@ -90,11 +92,10 @@ def verify_file_picture(db: Session, process: Process, picture_id: str, extra: d
 # ── Link type ────────────────────────────────────────────────────
 
 def get_pictures_for_link_process(db: Session, process: Process):
-    """Get unverified pictures from cloud folder for a link process."""
+    """Get pictures from cloud folder for a link process, split into unverified/verified."""
     folder_url = process.comment or ""
     all_pictures = list_cloud_pictures(folder_url)
 
-    # Exclude already processed pictures
     already_processed = (
         db.query(RetailProcessed.advertisement_id)
         .filter(RetailProcessed.process_id == process.id)
@@ -102,14 +103,13 @@ def get_pictures_for_link_process(db: Session, process: Process):
     )
     processed_links = {r[0] for r in already_processed}
 
-    remaining = [url for url in all_pictures if url not in processed_links]
-
     total = len(all_pictures)
     set_process_total_items(db, str(process.id), total)
 
-    result = []
-    for i, url in enumerate(remaining):
-        result.append({
+    unverified = []
+    verified = []
+    for i, url in enumerate(all_pictures):
+        item = {
             "id": f"link-{i}-{uuid.uuid4().hex[:8]}",
             "advertisement_id": url,
             "retailer_clean": "",
@@ -121,9 +121,13 @@ def get_pictures_for_link_process(db: Session, process: Process):
             "ferrero_category_multibrand": "",
             "first_screen_date": "",
             "last_screen_date": "",
-            "verified": False,
-        })
-    return result
+            "verified": url in processed_links,
+        }
+        if url in processed_links:
+            verified.append(item)
+        else:
+            unverified.append(item)
+    return {"unverified": unverified, "verified": verified}
 
 
 def verify_link_picture(db: Session, process: Process, url: str, extra: dict, user_id: str):
@@ -158,10 +162,10 @@ def verify_link_picture(db: Session, process: Process, url: str, extra: dict, us
 # ── Analyst type ─────────────────────────────────────────────────
 
 def get_pictures_for_analyst_process(db: Session, process: Process):
-    """Get unprocessed pictures for analyst-type process."""
+    """Get pictures for analyst-type process, split into unverified/verified."""
     parent_process_id = process.parent_process_id
     if not parent_process_id:
-        return []
+        return {"unverified": [], "verified": []}
 
     # Get retail_processed rows from parent link process
     source_rows = (
@@ -185,18 +189,21 @@ def get_pictures_for_analyst_process(db: Session, process: Process):
     total = len(source_rows)
     set_process_total_items(db, str(process.id), total)
 
-    result = []
+    unverified = []
+    verified = []
     for row in source_rows:
-        if str(row.id) in done_ids:
-            continue
-        result.append({
+        item = {
             "id": str(row.id),
             "advertisement_id": row.advertisement_id or "",
             "format": "",
             "weekly_price": "",
-            "verified": False,
-        })
-    return result
+            "verified": str(row.id) in done_ids,
+        }
+        if str(row.id) in done_ids:
+            verified.append(item)
+        else:
+            unverified.append(item)
+    return {"unverified": unverified, "verified": verified}
 
 
 def verify_analyst_picture(db: Session, process: Process, retail_processed_id: str, extra: dict, user_id: str):

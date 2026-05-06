@@ -1,4 +1,5 @@
 import type { PictureAttribute } from "../../types/picture_attributes";
+import CustomDropdown from "../shared/dropdown/CustomDropdown";
 
 interface PictureFieldListProps {
     fields: Record<string, string>;
@@ -6,9 +7,10 @@ interface PictureFieldListProps {
     hasSettings: boolean;
     onFieldChange: (key: string, value: string) => void;
     onShowPreset: (key: string) => void;
+    invalidFields?: Set<string>;
 }
 
-export default function PictureFieldList({ fields, settingsMap, hasSettings, onFieldChange, onShowPreset }: PictureFieldListProps) {
+export default function PictureFieldList({ fields, settingsMap, hasSettings, onFieldChange, onShowPreset, invalidFields = new Set() }: PictureFieldListProps) {
     return (
         <div className="pv-fields">
             {Object.entries(fields)
@@ -23,23 +25,23 @@ export default function PictureFieldList({ fields, settingsMap, hasSettings, onF
 
                     return (
                         <label key={key} className="pv-field">
-                            <span className="pv-field-label">{key}</span>
+                            <span className="pv-field-label">{key}{invalidFields.has(key) && <span style={{ color: "#f87171", marginLeft: 4 }}>required</span>}</span>
                             {hasDropdown ? (
                                 <div className="pv-dropdown-wrapper">
-                                    <select
-                                        className="pv-field-input"
-                                        value={value}
-                                        disabled={isDisabled}
-                                        onChange={(e) => onFieldChange(key, e.target.value)}
-                                        defaultValue={fields[key] ?? ""}
-                                    >
-                                        <option value="">— select —</option>
-                                        {attr!.reference_values!.map((ref) => (
-                                            <option key={ref.id} value={ref.value}>
-                                                {ref.value}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <CustomDropdown
+                                        options={
+                                            attr.reference_values?.map((r) => (
+                                                {
+                                                    label: r.value,
+                                                    value: r.id
+                                                }
+                                            )) ?? []
+                                        }
+                                        value={attr.reference_values?.find((r) => String(r.value) === value || r.id === value)?.id ?? null}
+                                        onChange={(val) => onFieldChange(key, val)}
+                                        searchable
+                                        error={invalidFields.has(key)}
+                                    />
                                     <button
                                         className="button-primary"
                                         onClick={() => onShowPreset(key)}

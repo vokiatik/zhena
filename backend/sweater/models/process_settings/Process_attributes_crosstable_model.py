@@ -10,6 +10,7 @@ class ProcessAttributes(Base):
     title = Column("title", Text, nullable=True)
     is_shown = Column(Boolean, nullable=False, default=True)
     is_editable = Column(Boolean, nullable=False, default=True)
+    is_nullable = Column(Boolean, nullable=False, default=True)
     reference_type_id = Column(UUID(as_uuid=True), nullable=True)
     process_id = Column(UUID(as_uuid=True), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

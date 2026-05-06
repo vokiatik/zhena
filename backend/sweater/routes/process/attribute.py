@@ -44,6 +44,7 @@ def get_process_attributes(process_id: str, user: dict = Depends(require_roles("
             "title": attr.title,
             "is_shown": attr.is_shown,
             "is_editable": attr.is_editable,
+            "is_nullable": attr.is_nullable,
             "created_at": str(attr.created_at) if attr.created_at else None,
             "process_id": str(attr.process_id),
             "reference_type_id": str(attr.reference_type_id) if attr.reference_type_id else None,
