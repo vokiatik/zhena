@@ -142,12 +142,12 @@ def save_reference_dataframe_to_db(db: Session, df, process_id=None) -> int:
         reference_value = row.get("value")
         reference_presetting_type = row.get("type")
 
-        reference_value = str(reference_value).strip().capitalize() if reference_value is not None else None
-        reference_presetting_type = str(reference_presetting_type).strip().capitalize() if reference_presetting_type is not None else None
+        reference_value = str(reference_value).strip().upper() if reference_value is not None else None
+        reference_presetting_type = str(reference_presetting_type).strip().upper() if reference_presetting_type is not None else None
 
         if not reference_value or not reference_presetting_type:
             continue
-
+        print(f"[REFERENCE UPLOAD DEBUG] Processing row with value='{reference_value}', type='{reference_presetting_type}'")
         reference_type = db.query(PictureAttributeReferenceType).filter(PictureAttributeReferenceType.reference_type_name == reference_presetting_type).first()
         
         if not reference_type:

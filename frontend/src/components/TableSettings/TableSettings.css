@@ -1,0 +1,221 @@
+/* ── Page wrapper ──────────────────────────────────────────────────────────── */
+.ts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background-color: #111;
+  min-height: 100%;
+  color: #e5e7eb;
+}
+
+.ts-page__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ── Toolbar (dropdown + sort info) ─────────────────────────────────────────── */
+.ts-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ts-toolbar__dropdown-wrap {
+  min-width: 260px;
+}
+
+/* ── Data table container ────────────────────────────────────────────────────── */
+.ts-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.ts-table th,
+.ts-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ts-table th {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  font-weight: 600;
+  user-select: none;
+}
+
+.ts-table th.sortable {
+  cursor: pointer;
+}
+
+.ts-table th.sortable:hover {
+  color: #e5e7eb;
+}
+
+.ts-table th .sort-icon {
+  margin-left: 4px;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.ts-table th.sorted .sort-icon {
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.ts-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ts-table .actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────────── */
+.ts-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.ts-pagination__info {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.ts-pagination__pages {
+  display: flex;
+  gap: 4px;
+}
+
+.ts-pagination__page-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.ts-pagination__page-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ts-pagination__page-btn.active {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.ts-pagination__page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Update modal form ───────────────────────────────────────────────────────── */
+.row-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.row-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row-form__label {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.row-form__label.required::after {
+  content: " *";
+  color: #f87171;
+}
+
+.row-form__input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+}
+
+.row-form__input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.row-form__input.error {
+  border-color: #f87171;
+}
+
+.row-form__error {
+  font-size: 0.78rem;
+  color: #f87171;
+}
+
+/* ── Meta settings table ─────────────────────────────────────────────────────── */
+.meta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.meta-table th,
+.meta-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.meta-table th {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.meta-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ts-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin: 0 0 12px;
+}
+
+.ts-empty {
+  color: #9ca3af;
+  padding: 32px;
+  text-align: center;
+  font-size: 0.9rem;
+}

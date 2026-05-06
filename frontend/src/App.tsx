@@ -11,6 +11,7 @@ import ProcessInstancesPage from "./pages/ProcessInstances/ProcessInstances";
 import LinkUploadPage from "./pages/LinkUpload/LinkUpload";
 import "./assets/styles/Global.css";
 import { ReferenceSettings } from "./pages/Settings/Reference";
+import { TableSettingsRoute } from "./pages/Settings/TableSettings";
 import { AppFooter } from "./components/AppFooter";
 
 function LogoutRoute() {
@@ -97,6 +98,14 @@ function App() {
                 element={
                   <RoleGuard allowedRoles={["admin"]}>
                     <ReferenceSettings />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/settings/table-settings"
+                element={
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <TableSettingsRoute />
                   </RoleGuard>
                 }
               />

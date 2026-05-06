@@ -9,7 +9,7 @@ interface Props {
     onConfirm: (decisions: ConfirmDecision[]) => void;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 // Palette of background colors for different type names
 const TYPE_COLORS = [

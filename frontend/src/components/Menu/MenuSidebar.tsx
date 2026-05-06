@@ -41,6 +41,7 @@ export default function MenuSidebar() {
             <div className={`menusidebar__accordion-body ${openAccordion === "settings" ? "menusidebar__accordion-body--open" : ""}`}>
               <Link to="/settings/process" className="menusidebar__nav-link">Process Settings</Link>
               <Link to="/settings/reference" className="menusidebar__nav-link">Reference Settings</Link>
+              <Link to="/settings/table-settings" className="menusidebar__nav-link">Table Settings</Link>
             </div>
           </div>
         )}
