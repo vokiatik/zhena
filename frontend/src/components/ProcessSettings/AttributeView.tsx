@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { PictureAttribute } from "../../types/picture_attributes";
-import type { referenceListType } from "../../types/ref_list";
 import CustomDropdown from "../shared/dropdown/CustomDropdown";
 import CustomSwitch from "../shared/switch/CustomSwitch";
 
@@ -10,19 +9,16 @@ import "./ProcessSettings.css";
 interface AttributeViewProps {
     attribute?: PictureAttribute;
     tableColumns?: string[] | null;
-    referenceList: referenceListType[] | undefined;
     curentProcessId?: string;
     setEditAttribute?: (attribute: PictureAttribute | undefined) => void;
     AddNewProcessAttribute: (attribute: PictureAttribute) => Promise<void>;
     UpdateProcessAttribute: (attribute: PictureAttribute) => Promise<void>;
-    CreateNewAttributeReferenceType: (referenceType: string) => Promise<void>;
     setShowAttributeView: (show: boolean) => void;
 }
 
 export default function AttributeView({
     attribute,
     tableColumns,
-    referenceList,
     curentProcessId,
     setEditAttribute,
     AddNewProcessAttribute,
@@ -37,7 +33,6 @@ export default function AttributeView({
         is_editable: true,
         is_nullable: true,
         input_type: "text",
-        reference_type_id: undefined,
         created_at: new Date().toISOString(),
     }
 
@@ -72,20 +67,10 @@ export default function AttributeView({
                     options={[
                         { value: "text", label: "Text" },
                         { value: "number", label: "Number" },
-                        { value: "dropdown", label: "Dropdown (single)" },
-                        { value: "multi_select", label: "Dropdown (multi-select)" },
                     ]}
                     value={newAttribute.input_type ?? "text"}
-                    onChange={(value) => setNewAttribute({ ...newAttribute, input_type: value, reference_type_id: ["dropdown", "multi_select"].includes(value) ? newAttribute.reference_type_id : undefined })}
+                    onChange={(value) => setNewAttribute({ ...newAttribute, input_type: value })}
                 />
-                {(newAttribute.input_type === "dropdown" || newAttribute.input_type === "multi_select") && (
-                    <CustomDropdown
-                        label="Reference Type (Dropdown Options)"
-                        options={referenceList?.map(ref => ({ value: ref.id, label: ref.reference_type_name })) || []}
-                        defaultValue={newAttribute.reference_type_id}
-                        onChange={(value) => setNewAttribute({ ...newAttribute, reference_type_id: value })}
-                    />
-                )}
             </div>
             <div className="attribute-switches">
                 <CustomSwitch

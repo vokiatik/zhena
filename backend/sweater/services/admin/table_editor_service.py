@@ -15,7 +15,6 @@ from sweater.models.process_settings.Process_type_model import ProcessType as _P
 from sweater.models.process_settings.Process_status_model import ProcessStatus as _ProcessStatus  # noqa: F401
 from sweater.models.Dictionaries.ecom_formats import EcomFormat as _EcomFormat  # noqa: F401
 from sweater.models.retail.Retail_model import Retail as _Retail  # noqa: F401
-from sweater.models.retail.Retail_model_additional import RetailAdditional as _RetailAdditional  # noqa: F401
 from sweater.models.retail.Analyst_processed_model import AnalystProcessed as _AnalystProcessed  # noqa: F401
 from sweater.models.retail.Retail_processed_model import RetailProcessed as _RetailProcessed  # noqa: F401
 
@@ -26,13 +25,23 @@ def list_table_settings(db: Session):
     return db.query(TableAdminSettings).order_by(TableAdminSettings.display_name).all()
 
 
-def update_table_setting(db: Session, setting_id: str, visible: bool, only_admin: bool, editable: bool):
+def update_table_setting(
+    db: Session,
+    setting_id: str,
+    visible: bool,
+    only_admin: bool,
+    editable: bool,
+    uploadable: bool = False,
+    upload_prefix: str | None = None,
+):
     setting = db.query(TableAdminSettings).filter(TableAdminSettings.id == setting_id).first()
     if not setting:
         return None
     setting.visible = visible
     setting.only_admin = only_admin
     setting.editable = editable
+    setting.uploadable = uploadable
+    setting.upload_prefix = upload_prefix
     db.commit()
     db.refresh(setting)
     return setting
@@ -317,6 +326,60 @@ def create_table_row(db: Session, table_name: str, data: dict[str, Any]) -> dict
     db.commit()
     row = result.fetchone()
     return dict(row._mapping) if row else None
+
+
+def upload_file_to_table(db: Session, table_name: str, filename: str, content: bytes) -> int:
+    """Parse a CSV/XLSX/XLS file and bulk-insert rows into an uploadable table.
+
+    Returns the number of inserted rows.
+    Raises ValueError with a descriptive message on validation failure.
+    """
+    from io import BytesIO
+    import pandas as pd
+
+    setting = db.query(TableAdminSettings).filter(
+        TableAdminSettings.table_name == table_name,
+        TableAdminSettings.visible == True,
+        TableAdminSettings.uploadable == True,
+    ).first()
+    if not setting:
+        raise ValueError("Table not found or not uploadable.")
+
+    lower_name = filename.lower()
+    if lower_name.endswith(".csv"):
+        encodings = ["utf-8-sig", "utf-8", "cp1251", "windows-1251", "latin1"]
+        df = None
+        for enc in encodings:
+            try:
+                df = pd.read_csv(BytesIO(content), encoding=enc)
+                break
+            except Exception:
+                continue
+        if df is None:
+            raise ValueError("Failed to read CSV file.")
+    elif lower_name.endswith(".xlsx") or lower_name.endswith(".xls"):
+        df = pd.read_excel(BytesIO(content))
+    else:
+        raise ValueError("Unsupported file type. Only CSV, XLSX and XLS are allowed.")
+
+    df.columns = [str(col).strip() for col in df.columns]
+    df = df.where(pd.notnull(df), None)
+
+    inserted = 0
+    for _, row in df.iterrows():
+        data = {k: (None if v != v else v) for k, v in row.items()}
+        # Convert numpy scalars to plain Python types
+        data = {
+            k: (int(v) if hasattr(v, "item") and isinstance(v, (int,)) else
+                float(v) if hasattr(v, "item") and isinstance(v, (float,)) else
+                v.item() if hasattr(v, "item") else v)
+            for k, v in data.items()
+        }
+        result = create_table_row(db, table_name, data)
+        if result:
+            inserted += 1
+
+    return inserted
 
 
 def update_table_row(db: Session, table_name: str, row_id: str, data: dict[str, Any]) -> bool:

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useApi } from "../api";
 import { useToast } from "../contexts/ToastContext";
 
@@ -9,6 +10,8 @@ export interface TableSetting {
     visible: boolean;
     only_admin: boolean;
     editable: boolean;
+    uploadable: boolean;
+    upload_prefix: string | null;
 }
 
 export interface FkOption {
@@ -47,8 +50,6 @@ export function useTableEditor() {
     const { get, post, put, del } = useApi();
     const { showToast } = useToast();
 
-    const [tableSettings, setTableSettings] = useState<TableSetting[]>([]);
-    const [visibleTables, setVisibleTables] = useState<TableSetting[]>([]);
     const [schema, setSchema] = useState<ColumnDef[]>([]);
     const [rows, setRows] = useState<TableRow[]>([]);
     const [total, setTotal] = useState(0);
@@ -56,19 +57,19 @@ export function useTableEditor() {
 
     // ── Meta settings ────────────────────────────────────────────────────────
 
-    const fetchTableSettings = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const res = await get<{ success: boolean; data: TableSetting[] }>("/admin/table-settings");
-            if (res.data.success) {
-                setTableSettings(res.data.data);
-            }
-        } catch (e) {
-            showToast("Failed to load table settings", "error");
-        } finally {
-            setIsLoading(false);
+    const getTableSettings = useCallback(async () => {
+        const res = await get<{ success: boolean; data: TableSetting[] }>("/admin/table-settings");
+        if (res.data.success) {
+            return res.data.data;
+        } else {
+            throw new Error("Failed to load table settings");
         }
-    }, [get, showToast]);
+    }, [get]);
+
+    const { data: tableSettings, isPending: isTableSettingsPending, error: tableSettingsError, refetch: refetchTableSettings } = useQuery({
+        queryKey: ['table_settings'],
+        queryFn: getTableSettings,
+    });
 
     const updateTableSetting = useCallback(
         async (id: string, patch: Omit<TableSetting, "id" | "table_name" | "display_name">) => {
@@ -78,9 +79,7 @@ export function useTableEditor() {
                     patch
                 );
                 if (res.data.success) {
-                    setTableSettings((prev) =>
-                        prev.map((s) => (s.id === id ? res.data.data : s))
-                    );
+                    refetchTableSettings();
                     showToast("Setting updated", "success");
                     return true;
                 }
@@ -90,21 +89,24 @@ export function useTableEditor() {
                 return false;
             }
         },
-        [put, showToast]
+        [put, showToast, refetchTableSettings]
     );
 
     // ── Table editor ─────────────────────────────────────────────────────────
 
-    const fetchVisibleTables = useCallback(async () => {
-        try {
-            const res = await get<{ success: boolean; data: TableSetting[] }>("/admin/table-editor/tables");
-            if (res.data.success) {
-                setVisibleTables(res.data.data);
-            }
-        } catch {
-            showToast("Failed to load tables", "error");
+    const getVisibleTables = useCallback(async () => {
+        const res = await get<{ success: boolean; data: TableSetting[] }>("/admin/table-editor/tables");
+        if (res.data.success) {
+            return res.data.data;
+        } else {
+            throw new Error("Failed to load tables");
         }
-    }, [get, showToast]);
+    }, [get]);
+
+    const { data: visibleTables, isPending: isVisibleTablesPending, error: visibleTablesError, refetch: refetchVisibleTables } = useQuery({
+        queryKey: ['visible_tables'],
+        queryFn: getVisibleTables,
+    });
 
     const fetchSchema = useCallback(
         async (tableName: string) => {
@@ -234,11 +236,15 @@ export function useTableEditor() {
     return {
         // meta
         tableSettings,
-        fetchTableSettings,
+        isTableSettingsPending,
+        tableSettingsError,
+        refetchTableSettings,
         updateTableSetting,
         // editor
         visibleTables,
-        fetchVisibleTables,
+        isVisibleTablesPending,
+        visibleTablesError,
+        refetchVisibleTables,
         schema,
         fetchSchema,
         rows,

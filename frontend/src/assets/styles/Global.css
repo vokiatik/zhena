@@ -49,9 +49,27 @@
   transform: scale(1.05);
 }
 
+.button-upload{
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(114, 223, 141, 0.06);
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.button-upload:hover {
+  background: rgba(114, 223, 141, 0.12);
+  color: #3b82f6;
+  transform: scale(1.05);
+}
+
 .button-primary:disabled,
 .button-secondary:disabled,
-.button-danger:disabled {
+.button-danger:disabled,
+.button-upload:disabled {
   background: rgba(255, 255, 255, 0.06);
   color: #9ca3af;
   cursor: not-allowed;

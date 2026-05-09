@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { ColumnDef, TableRow } from "../../hooks/useTableEditor";
 import RowUpdateModal from "./RowUpdateModal";
 import RowAddModal from "./RowAddModal";
@@ -62,17 +62,22 @@ export default function DataTable({
 
     return (
         <>
-            {editable && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                    <button
-                        className="button-primary"
-                        style={{ padding: "6px 16px", fontSize: "0.85rem" }}
-                        onClick={() => setAddingRow(true)}
-                    >
-                        + Add Row
-                    </button>
-                </div>
-            )}
+            <div className="ts-toolbar" style={{ marginBottom: 12 }}>
+                <span style={{ color: "#6b7280", fontSize: "0.85rem" }}>
+                    {total} rows
+                </span>
+                {editable && (
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                        <button
+                            className="button-primary"
+                            style={{ padding: "6px 16px", fontSize: "0.85rem" }}
+                            onClick={() => setAddingRow(true)}
+                        >
+                            + Add Row
+                        </button>
+                    </div>
+                )}
+            </div>
             <div className="ts-table-wrap">
                 <table className="ts-table">
                     <thead>

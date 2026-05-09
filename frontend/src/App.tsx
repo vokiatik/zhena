@@ -10,7 +10,6 @@ import ProcessSettingsList from "./components/ProcessSettings/ProcessSettings";
 import ProcessInstancesPage from "./pages/ProcessInstances/ProcessInstances";
 import LinkUploadPage from "./pages/LinkUpload/LinkUpload";
 import "./assets/styles/Global.css";
-import { ReferenceSettings } from "./pages/Settings/Reference";
 import { TableSettingsRoute } from "./pages/Settings/TableSettings";
 import { AppFooter } from "./components/AppFooter";
 
@@ -90,14 +89,6 @@ function App() {
                 element={
                   <RoleGuard allowedRoles={["admin"]}>
                     <ProcessSettingsList />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/settings/reference"
-                element={
-                  <RoleGuard allowedRoles={["admin"]}>
-                    <ReferenceSettings />
                   </RoleGuard>
                 }
               />

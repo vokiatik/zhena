@@ -17,12 +17,10 @@ export default function AttributeSettingsForm({
 }: AttributeSettingsFormProps) {
     const {
         tableColumns,
-        referenceList,
         processAttributes,
         AddNewProcessAttribute,
         DeleteProcessAttribute,
         UpdateProcessAttribute,
-        CreateNewAttributeReferenceType
     } = useAttributesSettings(curentProcess?.type, curentProcess?.id);
 
     const [showAttributeView, setShowAttributeView] = useState(false);
@@ -45,11 +43,9 @@ export default function AttributeSettingsForm({
                 {showAttributeView && (
                     <AttributeView
                         tableColumns={tableColumns}
-                        referenceList={referenceList}
                         curentProcessId={curentProcess?.id}
                         AddNewProcessAttribute={AddNewProcessAttribute}
                         UpdateProcessAttribute={UpdateProcessAttribute}
-                        CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
                         setShowAttributeView={setShowAttributeView}
                     />
                 )}
@@ -69,12 +65,10 @@ export default function AttributeSettingsForm({
                             <AttributeView
                                 attribute={editAttribute}
                                 tableColumns={tableColumns}
-                                referenceList={referenceList}
                                 curentProcessId={curentProcess?.id}
                                 setEditAttribute={setEditAttribute}
                                 AddNewProcessAttribute={AddNewProcessAttribute}
                                 UpdateProcessAttribute={UpdateProcessAttribute}
-                                CreateNewAttributeReferenceType={CreateNewAttributeReferenceType}
                                 setShowAttributeView={setShowAttributeView}
                             />
                         </div>

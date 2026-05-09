@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from sweater.database.references_db import get_reference_db
@@ -14,6 +14,7 @@ from sweater.services.admin.table_editor_service import (
     update_table_row,
     create_table_row,
     get_fk_options,
+    upload_file_to_table,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -35,6 +36,8 @@ def get_all_table_settings(db: Session = Depends(get_reference_db)):
             "visible": s.visible,
             "only_admin": s.only_admin,
             "editable": s.editable,
+            "uploadable": s.uploadable,
+            "upload_prefix": s.upload_prefix,
         }
         for s in settings
     ]}
@@ -49,7 +52,10 @@ def update_table_settings(
     body: TableSettingUpdate,
     db: Session = Depends(get_reference_db),
 ):
-    result = update_table_setting(db, setting_id, body.visible, body.only_admin, body.editable)
+    result = update_table_setting(
+        db, setting_id, body.visible, body.only_admin, body.editable,
+        body.uploadable, body.upload_prefix,
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Setting not found")
     return {
@@ -61,6 +67,8 @@ def update_table_settings(
             "visible": result.visible,
             "only_admin": result.only_admin,
             "editable": result.editable,
+            "uploadable": result.uploadable,
+            "upload_prefix": result.upload_prefix,
         },
     }
 
@@ -79,6 +87,8 @@ def get_visible_tables(db: Session = Depends(get_reference_db)):
             "table_name": t.table_name,
             "display_name": t.display_name,
             "editable": t.editable,
+            "uploadable": t.uploadable,
+            "upload_prefix": t.upload_prefix,
         }
         for t in tables
     ]}
@@ -166,3 +176,36 @@ def update_row(
     if not ok:
         raise HTTPException(status_code=400, detail="Update failed or table not editable")
     return {"success": True}
+
+
+@router.post(
+    "/table-editor/{table_name}/upload",
+    dependencies=[Depends(require_roles("admin"))],
+)
+async def upload_table_file(
+    table_name: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_reference_db),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="File name is missing.")
+
+    lower_name = file.filename.lower()
+    if not (lower_name.endswith(".csv") or lower_name.endswith(".xlsx") or lower_name.endswith(".xls")):
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file type. Only CSV, XLSX and XLS are allowed.",
+        )
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    try:
+        inserted = upload_file_to_table(db, table_name, file.filename, content)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+    return {"success": True, "inserted_rows": inserted}

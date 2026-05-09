@@ -11,3 +11,5 @@ cd "/home/admin/Desktop/text analyser" && docker compose up -d mailhog
 
 ./migrate_main.sh
 ./migrate_reference.sh
+
+alembic -c alembic_reference.ini revision --autogenerate -m "new dictionaries tables"

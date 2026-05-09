@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/backend"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/backend"
 
 echo "Running migrations for REFERENCE database..."
-alembic -c alembic_reference.ini upgrade head
+
+VENV_ALEMBIC="$SCRIPT_DIR/venv/bin/alembic"
+if [ -x "$VENV_ALEMBIC" ]; then
+  "$VENV_ALEMBIC" -c alembic_reference.ini upgrade head
+else
+  alembic -c alembic_reference.ini upgrade head
+fi
 echo "Reference database is up to date."

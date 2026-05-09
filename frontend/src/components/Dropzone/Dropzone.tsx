@@ -33,9 +33,8 @@ export default function FileUploadDropzone({ filetype }: { filetype?: string }):
             setMessage("Uploading file...");
             const filedata = new FormData();
             filedata.append("file", file);
-            filetype && filedata.append("filetype", filetype);
 
-            const result = await apiClient.post("/upload/retail-file", filedata, {
+            const result = await apiClient.post(`/upload/${filetype}`, filedata, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
@@ -85,7 +84,7 @@ export default function FileUploadDropzone({ filetype }: { filetype?: string }):
             filetype && filedata.append("filetype", filetype);
             filedata.append("decisions", JSON.stringify(decisions));
 
-            const result = await apiClient.post("/upload/retail-file/confirm", filedata, {
+            const result = await apiClient.post("/upload/retail/confirm", filedata, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 

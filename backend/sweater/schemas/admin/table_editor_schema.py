@@ -6,6 +6,8 @@ class TableSettingUpdate(BaseModel):
     visible: bool
     only_admin: bool
     editable: bool
+    uploadable: bool = False
+    upload_prefix: str | None = None
 
 
 class RowUpdateRequest(BaseModel):

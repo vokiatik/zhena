@@ -9,10 +9,12 @@
   color: #e5e7eb;
 }
 
-.ts-page__title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin: 0;
+.ts-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 /* ── Toolbar (dropdown + sort info) ─────────────────────────────────────────── */
@@ -21,6 +23,14 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+.ts-toolbar__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #9ca3af;
 }
 
 .ts-toolbar__dropdown-wrap {

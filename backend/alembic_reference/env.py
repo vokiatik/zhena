@@ -19,9 +19,12 @@ from sweater.models.process_settings.Process_type_model import ProcessType
 from sweater.models.process_settings.Process_status_model import ProcessStatus
 from sweater.models.process_settings.Process_model import Process
 from sweater.models.retail.Retail_model import Retail
-from sweater.models.retail.Retail_model_additional import RetailAdditional
 from sweater.models.retail.Retail_processed_model import RetailProcessed
 from sweater.models.retail.Analyst_processed_model import AnalystProcessed
+from sweater.models.admin.table_admin_settings_model import TableAdminSettings
+from sweater.models.Dictionaries.ecom_formats import EcomFormat
+from sweater.models.Dictionaries.ecom_formats_for_detector import EcomFormatForDetector
+from sweater.models.Dictionaries.funnel_stage import FunnelStage
 
 load_dotenv()
 

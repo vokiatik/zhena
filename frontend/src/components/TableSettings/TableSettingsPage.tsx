@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import "./TableSettings.css";
 import { useTableEditor } from "../../hooks/useTableEditor";
-import type { ColumnDef, TableRow, TableSetting } from "../../hooks/useTableEditor";
+import type { TableRow, TableSetting } from "../../hooks/useTableEditor";
 import CustomDropdown from "../shared/dropdown/CustomDropdown";
 import DataTable from "./DataTable";
 import TableMetaSettings from "./TableMetaSettings";
 import TvLoading from "../shared/loading/TvLoading";
+import TableUploadModal from "./TableUploadModal";
 
 const PAGE_SIZE = 20;
 
@@ -14,10 +15,9 @@ type ActiveTab = "editor" | "meta";
 export default function TableSettingsPage() {
     const {
         tableSettings,
-        fetchTableSettings,
         updateTableSetting,
+        refetchVisibleTables,
         visibleTables,
-        fetchVisibleTables,
         schema,
         fetchSchema,
         rows,
@@ -34,12 +34,7 @@ export default function TableSettingsPage() {
     const [page, setPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<string | null>(null);
     const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-
-    // Bootstrap
-    useEffect(() => {
-        fetchTableSettings();
-        fetchVisibleTables();
-    }, [fetchTableSettings, fetchVisibleTables]);
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Reload rows whenever the selected table / page / sort changes
     useEffect(() => {
@@ -50,7 +45,7 @@ export default function TableSettingsPage() {
     }, [selectedTable, page, sortColumn, sortDir]);
 
     function handleTableSelect(tableName: string) {
-        const tbl = visibleTables.find((t) => t.table_name === tableName) ?? null;
+        const tbl = (visibleTables ?? []).find((t) => t.table_name === tableName) ?? null;
         setSelectedTable(tbl);
         setPage(1);
         setSortColumn(null);
@@ -91,11 +86,12 @@ export default function TableSettingsPage() {
         return !!row;
     }
 
-    const tableOptions = visibleTables.map((t) => ({
+    const tableOptions = (visibleTables ?? []).map((t) => ({
         value: t.table_name,
         label: t.display_name,
     }));
 
+    console.log("Selected table:", selectedTable);
     return (
         <div className="ts-page">
             <h1 className="ts-page__title">Table Settings</h1>
@@ -118,11 +114,11 @@ export default function TableSettingsPage() {
 
             {activeTab === "meta" && (
                 <TableMetaSettings
-                    settings={tableSettings}
+                    settings={tableSettings ?? []}
                     onUpdate={async (id, patch) => {
                         await updateTableSetting(id, patch);
                         // Refresh visible tables list after toggling
-                        fetchVisibleTables();
+                        refetchVisibleTables();
                     }}
                 />
             )}
@@ -141,12 +137,26 @@ export default function TableSettingsPage() {
                                 placeholder="Choose a table…"
                             />
                         </div>
-                        {selectedTable && (
-                            <span style={{ color: "#6b7280", fontSize: "0.85rem" }}>
-                                {total} rows
-                            </span>
+                        {selectedTable?.uploadable && (
+                            <button
+                                className="button-upload"
+                                onClick={() => setShowUploadModal(true)}
+                            >
+                                Upload File
+                            </button>
                         )}
                     </div>
+
+                    {showUploadModal && selectedTable && (
+                        <TableUploadModal
+                            displayName={selectedTable.display_name}
+                            uploadPrefix={selectedTable.upload_prefix}
+                            onClose={() => {
+                                setShowUploadModal(false);
+                                fetchRows(selectedTable.table_name, page, PAGE_SIZE, sortColumn ?? undefined, sortDir);
+                            }}
+                        />
+                    )}
 
                     {/* Table data */}
                     {!selectedTable && (

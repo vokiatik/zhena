@@ -15,7 +15,7 @@ class Retail(Base):
     brands_list_clean = Column("Brands list clean", Text, nullable=True)
     ferrero_category = Column("!Категория Ферреро", Text, nullable=True)
     ferrero_category_range = Column("!Категория Ферреро  (Range категорий)", Text, nullable=True)
-    ferrero_category_multibrand = Column("!Категория Ферреро (Мультибренд категорий)", Text, nullable=True)
+    ferrero_category_multibrand = Column("!Категория Ферреро (Мультибренд ка", Text, nullable=True)
     first_screen_date = Column("Дата первого скрина", Date, nullable=True)
     last_screen_date = Column("Дата последнего скрина", Date, nullable=True)
     advertisement_id = Column("Advertisement ID", Text, nullable=True)
@@ -29,3 +29,39 @@ class Retail(Base):
     verified = Column(Boolean, nullable=False, default=False)
     declined = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+EXPECTED_COLUMNS = [
+    "Ретейлер clean",
+    "Advertiser (producer)",
+    "Brands list",
+    "Brands list clean",
+    "!Категория Ферреро",
+    "!Категория Ферреро  (Range категорий)",
+    "!Категория Ферреро (Мультибренд категорий)",
+    "Дата первого скрина",
+    "Дата последнего скрина",
+    "Advertisement ID",
+    "Advertising category",
+    "Seasonal",
+    "!Формат",
+    "Количество дней размещения est.",
+    "group_id",
+]
+
+FILE_COL_TO_DB_COL = {
+    "Ретейлер clean": "retailer_clean",
+    "Advertiser (producer)": "advertiser_producer",
+    "Brands list": "brands_list",
+    "Brands list clean": "brands_list_clean",
+    "!Категория Ферреро": "ferrero_category",
+    "!Категория Ферреро  (Range категорий)": "ferrero_category_range",
+    "!Категория Ферреро (Мультибренд категорий)": "ferrero_category_multibrand",
+    "Дата первого скрина": "first_screen_date",
+    "Дата последнего скрина": "last_screen_date",
+    "Advertisement ID": "advertisement_id",
+    "Advertising category": "advertising_category",
+    "Seasonal": "seasonal",
+    "!Формат": "format",
+    "Количество дней размещения est.": "estimated_days",
+    "group_id": "group_id",
+}

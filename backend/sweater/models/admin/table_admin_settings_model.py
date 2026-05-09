@@ -13,4 +13,6 @@ class TableAdminSettings(Base):
     visible = Column(Boolean, nullable=False, default=True)
     only_admin = Column(Boolean, nullable=False, default=False)
     editable = Column(Boolean, nullable=False, default=True)
+    uploadable = Column(Boolean, nullable=False, default=False)
+    upload_prefix = Column(Text, nullable=True)  # If not null, only files with names starting with this prefix can be uploaded for the table
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
