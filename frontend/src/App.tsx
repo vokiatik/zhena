@@ -2,13 +2,12 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useUser } from "./contexts";
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ConfirmEmailPage, RoleGuard } from "./components/Auth";
-import { FileUploadPage } from "./pages/UploadPage";
 import { ChatPage } from "./pages/ChatPage";
 import ScreeningPage from "./pages/PictureScreening/PictureScreening";
 import { MainLayout } from "./pages/Layout";
 import ProcessSettingsList from "./components/ProcessSettings/ProcessSettings";
 import ProcessInstancesPage from "./pages/ProcessInstances/ProcessInstances";
-import LinkUploadPage from "./pages/LinkUpload/LinkUpload";
+import DataPrepWorkflow from "./pages/DataPrep/DataPrepWorkflow";
 import "./assets/styles/Global.css";
 import { TableSettingsRoute } from "./pages/Settings/TableSettings";
 import { AppFooter } from "./components/AppFooter";
@@ -69,18 +68,10 @@ function App() {
                 }
               />
               <Route
-                path="/link-upload"
+                path="/data-prep/:processId"
                 element={
-                  <RoleGuard allowedRoles={["admin", "marketing_specialist"]}>
-                    <LinkUploadPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/upload/:defaultfiletype?"
-                element={
-                  <RoleGuard allowedRoles={["admin", "marketing_specialist"]}>
-                    <FileUploadPage />
+                  <RoleGuard allowedRoles={["admin", "marketing_specialist", "analyst"]}>
+                    <DataPrepWorkflow />
                   </RoleGuard>
                 }
               />

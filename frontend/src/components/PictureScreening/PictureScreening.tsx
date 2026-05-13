@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePictureScreening } from "../../hooks/usePictureScreening";
 import { usePictureScreeningSettings } from "../../hooks/usePictureScreeningSettings";
+import { useAdvertisementScreening } from "../../hooks/useAdvertisementScreening";
+import { useApi } from "../../api";
 import type { PictureItem } from "../../types/picture";
+import type { AdvertisementItem } from "../../types/advertisement";
 import PictureViewer from "./PictureViewer";
+import AdvertisementViewer from "./AdvertisementViewer";
 import VerifiedPictureModal from "./VerifiedPictureModal";
 import DeclinedPictureModal from "./DeclinedPictureModal";
 import "./PictureScreening.css";
@@ -13,33 +17,156 @@ interface PictureScreeningProps {
 }
 
 export default function PictureScreening({ role, processId }: PictureScreeningProps) {
+    const { get } = useApi();
     const [activeTab, setActiveTab] = useState<"unverified" | "verified" | "declined">("unverified");
     const [selectedPicture, setSelectedPicture] = useState<PictureItem | null>(null);
     const [selectedDeclined, setSelectedDeclined] = useState<PictureItem | null>(null);
+    const [selectedVerifiedAd, setSelectedVerifiedAd] = useState<AdvertisementItem | null>(null);
+    const [selectedDeclinedAd, setSelectedDeclinedAd] = useState<AdvertisementItem | null>(null);
+    const [processTypeName, setProcessTypeName] = useState<string | null>(null);
+    const [typeLoading, setTypeLoading] = useState(!!processId);
 
+    // Determine process type when processId is provided
+    useEffect(() => {
+        if (!processId) return;
+        setTypeLoading(true);
+        get<{ type_name: string }>(`/process-instances/${processId}`)
+            .then((res) => setProcessTypeName(res.data.type_name))
+            .catch(() => setProcessTypeName(null))
+            .finally(() => setTypeLoading(false));
+    }, [processId, get]);
+
+    const isDataPrep = processTypeName === "data_prep";
+
+    // ── Advertisement screening (data_prep process) ──────────────
+    const adScreening = useAdvertisementScreening(processId ?? "__none__");
+
+    // ── Legacy picture screening ─────────────────────────────────
+    const legacyScreening = usePictureScreening(role, isDataPrep ? undefined : processId);
+    const { settings, isLoading: settingsLoading } = usePictureScreeningSettings(isDataPrep ? undefined : processId);
+
+    if (typeLoading || (isDataPrep ? adScreening.isLoading : legacyScreening.isLoading || settingsLoading)) {
+        return <div className="ps-container"><p className="ps-loading">Loading…</p></div>;
+    }
+
+    const err = isDataPrep ? adScreening.error : legacyScreening.error;
+    if (err) {
+        return <div className="ps-container"><p className="ps-error">{err}</p></div>;
+    }
+
+    // ── Data-prep advertisement view ─────────────────────────────
+    if (isDataPrep) {
+        const { currentAdvertisement, unverified, verified, declined, options, total, verifyAndNext, declineAndNext } = adScreening;
+
+        return (
+            <div className="ps-container">
+                <div className="ps-header">
+                    <h2>Total is {total} advertisements</h2>
+                </div>
+
+                <div className="ps-tabs">
+                    <button className={`ps-tab${activeTab === "unverified" ? " ps-tab--active" : ""}`} onClick={() => setActiveTab("unverified")} type="button">
+                        Unverified ({unverified.length})
+                    </button>
+                    <button className={`ps-tab${activeTab === "verified" ? " ps-tab--active" : ""}`} onClick={() => setActiveTab("verified")} type="button">
+                        Verified ({verified.length})
+                    </button>
+                    <button className={`ps-tab${activeTab === "declined" ? " ps-tab--active" : ""}`} onClick={() => setActiveTab("declined")} type="button">
+                        Declined ({declined.length})
+                    </button>
+                </div>
+
+                {activeTab === "unverified" && (
+                    <>
+                        {!currentAdvertisement ? (
+                            <p className="ps-done">All advertisements have been reviewed!</p>
+                        ) : (
+                            <AdvertisementViewer
+                                advertisement={currentAdvertisement}
+                                options={options}
+                                onVerify={verifyAndNext}
+                                onDecline={declineAndNext}
+                            />
+                        )}
+                    </>
+                )}
+
+                {activeTab === "verified" && (
+                    <div className="ps-verified-list">
+                        {verified.length === 0 ? (
+                            <p className="ps-done">No verified advertisements yet.</p>
+                        ) : (
+                            verified.map((ad) => (
+                                <button key={ad.id} className="ps-verified-item" onClick={() => setSelectedVerifiedAd(ad)} type="button">
+                                    <img src={ad.url} alt="verified ad" className="ps-verified-img" />
+                                </button>
+                            ))
+                        )}
+                    </div>
+                )}
+
+                {activeTab === "declined" && (
+                    <div className="ps-declined-list">
+                        {declined.length === 0 ? (
+                            <p className="ps-done">No declined advertisements yet.</p>
+                        ) : (
+                            declined.map((ad) => (
+                                <button key={ad.id} className="ps-declined-item" onClick={() => setSelectedDeclinedAd(ad)} type="button">
+                                    <img src={ad.url} alt="declined ad" className="ps-declined-img" />
+                                </button>
+                            ))
+                        )}
+                    </div>
+                )}
+
+                {selectedVerifiedAd && (
+                    <div className="ps-modal-overlay" onClick={() => setSelectedVerifiedAd(null)}>
+                        <div className="ps-modal" onClick={(e) => e.stopPropagation()}>
+                            <AdvertisementViewer
+                                advertisement={selectedVerifiedAd}
+                                options={options}
+                                onVerify={async (payload) => {
+                                    await adScreening.updateVerified(selectedVerifiedAd.id, payload);
+                                    setSelectedVerifiedAd(null);
+                                }}
+                            />
+                            <button className="button-secondary" onClick={() => setSelectedVerifiedAd(null)} type="button">Close</button>
+                        </div>
+                    </div>
+                )}
+
+                {selectedDeclinedAd && (
+                    <div className="ps-modal-overlay" onClick={() => setSelectedDeclinedAd(null)}>
+                        <div className="ps-modal" onClick={(e) => e.stopPropagation()}>
+                            <AdvertisementViewer
+                                advertisement={selectedDeclinedAd}
+                                options={options}
+                                onVerify={async (payload) => {
+                                    await adScreening.updateDeclined(selectedDeclinedAd.id, payload, false);
+                                    setSelectedDeclinedAd(null);
+                                }}
+                                onDecline={async () => setSelectedDeclinedAd(null)}
+                            />
+                            <button className="button-secondary" onClick={() => setSelectedDeclinedAd(null)} type="button">Close</button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // ── Legacy picture view ──────────────────────────────────────
     const {
         currentPicture,
         unverifiedPictures,
         verifiedPictures,
         declinedPictures,
         total,
-        isLoading,
-        error,
-        verifyAndNext,
+        verifyAndNext: legacyVerifyAndNext,
         updateVerified,
-        declineAndNext,
+        declineAndNext: legacyDeclineAndNext,
         updateDeclined,
-    } = usePictureScreening(role, processId);
-
-    const { settings, isLoading: settingsLoading } = usePictureScreeningSettings(processId);
-
-    if (isLoading || settingsLoading) {
-        return <div className="ps-container"><p className="ps-loading">Loading pictures…</p></div>;
-    }
-
-    if (error) {
-        return <div className="ps-container"><p className="ps-error">{error}</p></div>;
-    }
+    } = legacyScreening;
 
     return (
         <div className="ps-container">
@@ -53,14 +180,14 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                     onClick={() => setActiveTab("unverified")}
                     type="button"
                 >
-                    Unverified ({unverifiedPictures.length})
+                    Unverified ({unverifiedPictures?.length})
                 </button>
                 <button
                     className={`ps-tab${activeTab === "verified" ? " ps-tab--active" : ""}`}
                     onClick={() => setActiveTab("verified")}
                     type="button"
                 >
-                    Verified ({verifiedPictures.length})
+                    Verified ({verifiedPictures?.length})
                 </button>
                 <button
                     className={`ps-tab${activeTab === "declined" ? " ps-tab--active" : ""}`}
@@ -79,8 +206,8 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                         <PictureViewer
                             picture={currentPicture}
                             settings={settings}
-                            onVerify={verifyAndNext}
-                            onDecline={processId ? declineAndNext : undefined}
+                            onVerify={legacyVerifyAndNext}
+                            onDecline={processId ? legacyDeclineAndNext : undefined}
                         />
                     )}
                 </>
@@ -88,10 +215,10 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
 
             {activeTab === "verified" && (
                 <div className="ps-verified-list">
-                    {verifiedPictures.length === 0 ? (
+                    {verifiedPictures?.length === 0 ? (
                         <p className="ps-done">No verified pictures yet.</p>
                     ) : (
-                        verifiedPictures.map((pic) => (
+                        verifiedPictures?.map((pic) => (
                             <button
                                 key={pic.id}
                                 className="ps-verified-item"

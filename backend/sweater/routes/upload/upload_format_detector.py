@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from sweater.routes.upload.read_csv_with_fallbacks import read_csv_with_fallbacks
 from sweater.services.process.process_instance_service import create_process_instance
 
-from sweater.models.Dictionaries.ecom_formats_for_detector import EcomFormatForDetector
-from sweater.services.dictionaries.dictionaries_service import  get_retailer_id_by_name
+from sweater.models.Dictionaries.detector_format_comparison import DetectorFormatComparison
+from sweater.services.dictionaries.dictionaries_service import  get_retailer_id_by_name, get_format_id
 
 def parse_format_file(filename: str, content: bytes) -> pd.DataFrame:
     lower_name = filename.lower()
@@ -43,21 +43,24 @@ def save_format_dataframe_to_db(db: Session, df, process_id=None) -> int:
 
         if not format or not format_detector or not retailer_id:
             continue
+
+        format_id = get_format_id(db, retailer_id, format, {})  
+        
         print(f"[REFERENCE UPLOAD DEBUG] Processing row with format='{format}', format_detector='{format_detector}' retailer_id='{retailer_id}'")
 
-        ecom_format = db.query(EcomFormatForDetector).filter(EcomFormatForDetector.format == format, EcomFormatForDetector.retailer_id == retailer_id).first()
+        ecom_format = db.query(DetectorFormatComparison).filter(DetectorFormatComparison.format_id == format_id, DetectorFormatComparison.retailer_id == retailer_id).first()
         
         if not ecom_format:
-            db_type = EcomFormatForDetector(format=format, retailer_id=retailer_id, format_detector=format_detector)
+            db_type = DetectorFormatComparison(format_id=format_id, retailer_id=retailer_id, detector_format=format_detector)
             db.add(db_type)
             db.commit()
             db.refresh(db_type)
             ecom_format = db_type
 
-        db_row = EcomFormatForDetector(
-            format=format,
+        db_row = DetectorFormatComparison(
+            format_id=format_id,
             retailer_id=retailer_id,
-            format_detector=format_detector,
+            detector_format=format_detector,
         )
         rows.append(db_row)
 

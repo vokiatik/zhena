@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sweater.routes.upload.read_csv_with_fallbacks import read_csv_with_fallbacks
 from sweater.services.process.process_instance_service import create_process_instance
 
-from sweater.models.Dictionaries.ecom_formats import EcomFormat
+from sweater.models.Dictionaries.format import Format
 from sweater.services.dictionaries.dictionaries_service import get_funnel_stage_id_by_name, get_retailer_id_by_name
 
 def parse_format_file(filename: str, content: bytes) -> pd.DataFrame:
@@ -51,16 +51,16 @@ def save_format_dataframe_to_db(db: Session, df, process_id=None) -> int:
         print(f"[REFERENCE UPLOAD DEBUG] Processing row with format='{format}', sov='{sov}' retailer_id='{retailer_id}', funnel_stage_id='{funnel_stage_id}'")
         if not format or not sov or not retailer_id or not funnel_stage_id:
             continue
-        ecom_format = db.query(EcomFormat).filter(EcomFormat.format == format, EcomFormat.retailer_id == retailer_id).first()
+        ecom_format = db.query(Format).filter(Format.format == format, Format.retailer_id == retailer_id).first()
         
         if not ecom_format:
-            db_type = EcomFormat(format=format, retailer_id=retailer_id, funnel_stage_id=funnel_stage_id, sov=sov)
+            db_type = Format(format=format, retailer_id=retailer_id, funnel_stage_id=funnel_stage_id, sov=sov)
             db.add(db_type)
             db.commit()
             db.refresh(db_type)
             ecom_format = db_type
 
-        db_row = EcomFormat(
+        db_row = Format(
             format=format,
             retailer_id=retailer_id,
             funnel_stage_id=funnel_stage_id,

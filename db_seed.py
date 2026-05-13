@@ -18,12 +18,18 @@ PROCESS_TYPES = [
     ("file", "retail_processed"),
     ("link", "retail_processed"),
     ("analyst", "analyst_processed"),
+    ("data_prep", "retail_processed"),
 ]
 
 PROCESS_STATUSES = [
     "initiated",
     "in progress",
     "done",
+    "awaiting_link",
+    "analyst_review",
+    "marketing_review",
+    "completed",
+    "canceled",
 ]
 
 

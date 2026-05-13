@@ -6,14 +6,12 @@ from sweater.models.admin.table_admin_settings_model import TableAdminSettings
 
 # ── Import every Reference_Base model so Reference_Base.metadata knows about
 # all tables.  Required for Python-default introspection.
-from sweater.models.process_settings.Picture_attribute_reference_model import PictureAttributeReference  # noqa: F401
-from sweater.models.process_settings.Picture_attribute_reference_type_model import PictureAttributeReferenceType  # noqa: F401
 from sweater.models.process_settings.Picture_processing_model import ProcessSettings as _ProcessSettings  # noqa: F401
 from sweater.models.process_settings.Process_model import Process as _Process  # noqa: F401
 from sweater.models.process_settings.Process_attributes_crosstable_model import ProcessAttributes as _ProcessAttributes  # noqa: F401
 from sweater.models.process_settings.Process_type_model import ProcessType as _ProcessType  # noqa: F401
 from sweater.models.process_settings.Process_status_model import ProcessStatus as _ProcessStatus  # noqa: F401
-from sweater.models.Dictionaries.ecom_formats import EcomFormat as _EcomFormat  # noqa: F401
+from sweater.models.Dictionaries.format import Format as _Format  # noqa: F401
 from sweater.models.retail.Retail_model import Retail as _Retail  # noqa: F401
 from sweater.models.retail.Analyst_processed_model import AnalystProcessed as _AnalystProcessed  # noqa: F401
 from sweater.models.retail.Retail_processed_model import RetailProcessed as _RetailProcessed  # noqa: F401

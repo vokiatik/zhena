@@ -11,8 +11,6 @@ from alembic import context
 
 from sweater.database.references_db import Reference_Base
 
-from sweater.models.process_settings.Picture_attribute_reference_type_model import PictureAttributeReferenceType
-from sweater.models.process_settings.Picture_attribute_reference_model import PictureAttributeReference
 from sweater.models.process_settings.Process_attributes_crosstable_model import ProcessAttributes
 from sweater.models.process_settings.Picture_processing_model import ProcessSettings
 from sweater.models.process_settings.Process_type_model import ProcessType
@@ -21,10 +19,12 @@ from sweater.models.process_settings.Process_model import Process
 from sweater.models.retail.Retail_model import Retail
 from sweater.models.retail.Retail_processed_model import RetailProcessed
 from sweater.models.retail.Analyst_processed_model import AnalystProcessed
+from sweater.models.retail.Retail_multi_value_model import RetailMultiValue
 from sweater.models.admin.table_admin_settings_model import TableAdminSettings
-from sweater.models.Dictionaries.ecom_formats import EcomFormat
-from sweater.models.Dictionaries.ecom_formats_for_detector import EcomFormatForDetector
-from sweater.models.Dictionaries.funnel_stage import FunnelStage
+from sweater.models.Dictionaries.detector_format_comparison import DetectorFormatComparison
+from sweater.models.Dictionaries.format import Format
+from sweater.models.Dictionaries.simple_value import SimpleValue
+from sweater.models.Dictionaries.simple_value_type import SimpleValueType
 
 load_dotenv()
 

@@ -3,8 +3,8 @@ from io import BytesIO
 from sqlalchemy.orm import Session
 from sweater.routes.upload.read_csv_with_fallbacks import read_csv_with_fallbacks
 
-from sweater.models.process_settings.Picture_attribute_reference_model import PictureAttributeReference
-from sweater.models.process_settings.Picture_attribute_reference_type_model import PictureAttributeReferenceType
+from sweater.models.Dictionaries.simple_value import SimpleValue
+from sweater.models.Dictionaries.simple_value_type import SimpleValueType
 from sweater.services.process.process_instance_service import create_process_instance
 
 def parse_reference_file(filename: str, content: bytes) -> pd.DataFrame:
@@ -39,18 +39,18 @@ def save_reference_dataframe_to_db(db: Session, df, process_id=None) -> int:
         if not reference_value or not reference_presetting_type:
             continue
         print(f"[REFERENCE UPLOAD DEBUG] Processing row with value='{reference_value}', type='{reference_presetting_type}'")
-        reference_type = db.query(PictureAttributeReferenceType).filter(PictureAttributeReferenceType.reference_type_name == reference_presetting_type).first()
+        reference_type = db.query(SimpleValueType).filter(SimpleValueType.field_name == reference_presetting_type).first()
         
         if not reference_type:
-            db_type = PictureAttributeReferenceType(reference_type_name=reference_presetting_type)
+            db_type = SimpleValueType(field_name=reference_presetting_type)
             db.add(db_type)
             db.commit()
             db.refresh(db_type)
             reference_type = db_type
 
-        db_row = PictureAttributeReference(
-            reference_value=reference_value,
-            reference_type_id=reference_type.id,
+        db_row = SimpleValue(
+            value=reference_value,
+            column_name_id=reference_type.id,
         )
         rows.append(db_row)
 

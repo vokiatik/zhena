@@ -23,12 +23,6 @@ export default function MenuSidebar() {
         {hasAnyRole("admin", "marketing_specialist", "analyst") && (
           <Link to="/processes" className="menusidebar__nav-link">Processes</Link>
         )}
-        {hasAnyRole("admin", "marketing_specialist") && (
-          <Link to="/upload" className="menusidebar__nav-link">File Upload</Link>
-        )}
-        {hasAnyRole("admin", "marketing_specialist") && (
-          <Link to="/link-upload" className="menusidebar__nav-link">Link Upload</Link>
-        )}
         {hasAnyRole("admin") && (
           <div className="menusidebar__accordion">
             <button

@@ -2,7 +2,11 @@ from pydantic import BaseModel
 from typing import Optional
 
 
-class CreateLinkProcess(BaseModel):
+class CreateDataPrepProcess(BaseModel):
+    comment: Optional[str] = None
+
+
+class ProvideLinkBody(BaseModel):
     link: str
 
 

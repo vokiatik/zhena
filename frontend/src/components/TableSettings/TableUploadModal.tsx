@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { apiClient } from "../../api";
 import CustomModal from "../shared/modal/CustomModal";
+import "../../assets/styles/Dropzone.css";
 
 type UploadState = "idle" | "uploading" | "success" | "error";
 

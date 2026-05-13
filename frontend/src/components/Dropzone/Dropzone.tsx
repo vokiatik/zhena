@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { apiClient } from "../../api";
 import type { ConfirmDecision, ValidationRequiredResponse } from "../../types/file_upload_validation";
 import NewDictValuesModal from "./NewDictValuesModal";
-import "./Dropzone.css";
+import "../../assets/styles/Dropzone.css";
 
 type UploadState = "idle" | "uploading" | "success" | "error";
 

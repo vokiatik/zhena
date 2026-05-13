@@ -150,7 +150,7 @@ export default function TableSettingsPage() {
                     {showUploadModal && selectedTable && (
                         <TableUploadModal
                             displayName={selectedTable.display_name}
-                            uploadPrefix={selectedTable.upload_prefix}
+                            uploadPrefix={selectedTable.upload_prefix ?? ""}
                             onClose={() => {
                                 setShowUploadModal(false);
                                 fetchRows(selectedTable.table_name, page, PAGE_SIZE, sortColumn ?? undefined, sortDir);
