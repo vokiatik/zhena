@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { useProcessInstances } from "../../hooks/useProcessInstances";
-import { useToast } from "../../contexts/ToastContext";
 import { PictureScreening } from "../../components/PictureScreening";
 
 interface AnalystReviewStepProps {
@@ -10,27 +7,6 @@ interface AnalystReviewStepProps {
 }
 
 export default function AnalystReviewStep({ processId, canAct, onDone }: AnalystReviewStepProps) {
-    const { analystConfirm } = useProcessInstances();
-    const { showToast } = useToast();
-    const [confirming, setConfirming] = useState(false);
-
-    const handleConfirm = async () => {
-        setConfirming(true);
-        try {
-            const result = await analystConfirm(processId);
-            if (result.ok) {
-                showToast("Analyst review completed", "success");
-                onDone();
-            } else {
-                showToast("Failed to confirm review", "error");
-            }
-        } catch {
-            showToast("Failed to confirm review", "error");
-        } finally {
-            setConfirming(false);
-        }
-    };
-
     if (!canAct) {
         return (
             <div className="dp-step-body">
@@ -48,16 +24,7 @@ export default function AnalystReviewStep({ processId, canAct, onDone }: Analyst
                 click "Complete Review" to advance to marketing review.
             </p>
             <div className="dp-screening-wrapper">
-                <PictureScreening role="analyst" processId={processId} />
-            </div>
-            <div className="dp-step-footer">
-                <button
-                    className="button-primary dp-submit-btn"
-                    onClick={handleConfirm}
-                    disabled={confirming}
-                >
-                    {confirming ? "Completing…" : "Complete Review"}
-                </button>
+                <PictureScreening processId={processId} onDone={onDone} />
             </div>
         </div>
     );

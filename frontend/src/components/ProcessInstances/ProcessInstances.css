@@ -85,7 +85,6 @@
 .pi-col--comment {
     flex: 1 1 auto;
     min-width: 0;
-    padding-right: 12px;
     font-size: 0.9rem;
     color: #cbd5e1;
 }
@@ -204,6 +203,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding-inline: 10px;
 }
 
 .pi-col--type {
@@ -211,13 +211,14 @@
 }
 
 .pi-col--status {
-    flex: 0 0 120px;
+    flex: 0 0 160px;
 }
+
 
 .pi-col--comment {
     flex: 1 1 auto;
     min-width: 0;
-    padding-right: 12px;
+    
 }
 
 .pi-col--items {
@@ -230,8 +231,9 @@
 }
 
 .pi-col--actions {
-    flex: 0 0 220px;
+    flex: 0 0 120px;
     display: flex;
+    flex-direction: column;
     gap: 6px;
     justify-content: flex-end;
 }

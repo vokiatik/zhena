@@ -48,7 +48,7 @@ export default function AttributeView({
         setShowAttributeView(false);
     };
     const HandleDeleteAttribute = () => {
-        setEditAttribute && setEditAttribute(undefined);
+        if (setEditAttribute) setEditAttribute(undefined);
     };
 
     return (

@@ -43,7 +43,7 @@ export default function FileUploadStep({ processId, onDone }: FileUploadStepProp
                 setMessage(null);
                 return;
             }
-            if (result.status === "success") {
+            if ("ok" in result && result.ok) {
                 showToast("File uploaded successfully", "success");
                 onDone();
             } else {

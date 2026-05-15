@@ -8,7 +8,7 @@ interface PicturesResponse {
   declined: PictureItem[];
 }
 
-export function usePictureScreening(role: string, processId?: string) {
+export function usePictureScreening(processId?: string, skip = false) {
   const { get, post } = useApi();
   const [unverifiedPictures, setUnverifiedPictures] = useState<PictureItem[]>([]);
   const [verifiedPictures, setVerifiedPictures] = useState<PictureItem[]>([]);
@@ -18,6 +18,7 @@ export function usePictureScreening(role: string, processId?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchPictures = useCallback(async () => {
+    if (skip) { setIsLoading(false); return; }
     setIsLoading(true);
     setError(null);
     try {
@@ -26,10 +27,6 @@ export function usePictureScreening(role: string, processId?: string) {
         setUnverifiedPictures(res.data.unverified);
         setVerifiedPictures(res.data.verified);
         setDeclinedPictures(res.data.declined ?? []);
-      } else {
-        const res = await get<PictureItem[]>(`/pictures/${role}`);
-        setUnverifiedPictures(res.data);
-        setVerifiedPictures([]);
       }
       setCurrentIndex(0);
     } catch (e: unknown) {
@@ -37,7 +34,7 @@ export function usePictureScreening(role: string, processId?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [get, role, processId]);
+  }, [get, processId, skip]);
 
   useEffect(() => {
     fetchPictures();

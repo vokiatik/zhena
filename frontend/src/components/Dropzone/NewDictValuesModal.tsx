@@ -33,6 +33,8 @@ function buildTypeColorMap(values: MissingReferenceValue[]): Record<string, stri
 }
 
 export default function NewDictValuesModal({ validationData, onConfirm }: Props): React.ReactElement {
+
+    console.log("NewDictValuesModal render", { validationData });
     const { missing_values, existing_values_by_type } = validationData;
 
     const typeColorMap = useMemo(() => buildTypeColorMap(missing_values), [missing_values]);

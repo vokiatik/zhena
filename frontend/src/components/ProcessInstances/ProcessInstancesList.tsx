@@ -13,6 +13,7 @@ export default function ProcessInstancesList() {
         isPending,
         error,
         updateProcessInstance,
+        deleteProcessInstance,
         createProcess,
         cancelProcess,
         statusOptions,
@@ -79,6 +80,14 @@ export default function ProcessInstancesList() {
         }
     };
 
+    const handleDelete = async (processId: string) => {
+        const res = await deleteProcessInstance(processId);
+        if (res.ok) {
+            showToast("Process deleted", "success");
+        } else {
+            showToast("Failed to delete process", "error");
+        }
+    }
     const getStatusClass = (status: string) => {
         switch (status) {
             case "initiated": return "pi-status--initiated";
@@ -123,7 +132,7 @@ export default function ProcessInstancesList() {
                             <span className="pi-col pi-col--id pi-id-text">
                                 #{process.id.slice(0, 8)}
                             </span>
-                            <span className={`pi-col pi-col--status ${getStatusClass(process.status_name)}`}>
+                            <span className={`pi-col pi-col--status${editingId === process.id ? "--edit" : ""} ${getStatusClass(process.status_name)}`}>
                                 {editingId === process.id ? (
                                     <select
                                         value={editStatus}
@@ -166,7 +175,7 @@ export default function ProcessInstancesList() {
                                 )}
                                 {process.status_name !== "canceled" &&
                                     process.status_name !== "completed" &&
-                                    hasAnyRole("admin", "analyst") && (
+                                    hasAnyRole("admin") && (
                                         <button
                                             className="button-danger pi-action-btn"
                                             onClick={() => handleCancel(process.id)}
@@ -191,20 +200,33 @@ export default function ProcessInstancesList() {
                                             </button>
                                         </>
                                     ) : (
-                                        <button
-                                            className="button-secondary pi-action-btn"
-                                            onClick={() => {
-                                                setEditingId(process.id);
-                                                setEditStatus(process.status_name);
-                                            }}
-                                        >
-                                            Edit
-                                        </button>
+                                        hasAnyRole("admin") && (
+                                            <button
+                                                className="button-secondary pi-action-btn"
+                                                onClick={() => {
+                                                    setEditingId(process.id);
+                                                    setEditStatus(process.status_name);
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                        )
                                     )
                                 )}
+                                {process.status_name == "canceled" &&
+                                    hasAnyRole("admin") && (
+                                        <button
+                                            className="button-danger pi-action-btn"
+                                            onClick={() => handleDelete(process.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+
                             </span>
                         </div>
-                    );
+                    )
+
                 })}
 
                 {dataPrep.length === 0 && (

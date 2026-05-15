@@ -30,13 +30,11 @@ from sweater.models.advertisement.Advertisement_link_model import AdvertisementL
 from sweater.models.advertisement.Advertisement_brand_model import AdvertisementBrand
 from sweater.models.advertisement.Advertisement_category_model import AdvertisementCategory
 from sweater.models.advertisement.Advertisement_format_model import AdvertisementFormat
-from sweater.models.advertisement.Advertisement_add_category_model import AdvertisementAddCategory
 from sweater.models.Dictionaries.simple_value import SimpleValue
 from sweater.models.Dictionaries.simple_value_type import SimpleValueType
 from sweater.models.Dictionaries.format import Format
 from sweater.models.Dictionaries.detector_format_comparison import DetectorFormatComparison
 from sweater.services.upload.advertisement_validation_service import (
-    SIMPLE_VALUE_COLUMN_MAP,
     split_multi_value,
 )
 
@@ -64,9 +62,8 @@ FILE_COLUMN_ALIASES = {
     "Ретейлер clean": "retailer_clean",
     "Advertiser (producer)": "advertiser",
     "Brands list clean": "brand",
-    "!Категория Ферреро": "product_category",
-    "Product category": "!Категория Ферреро  (Range категорий)",
-    "Brand category": "!Категория Ферреро (Мультибренд категорий)",
+    "!Категория Ферреро  (Range категорий)": "product_category",
+    "!Категория Ферреро (Мультибренд категорий)": "brand_category",
     "Дата первого скрина": "first_appearance_date",
     "Дата последнего скрина": "last_appearance_date",
     "!Формат": "format",
@@ -93,7 +90,7 @@ def parse_advertisement_file(filename: str, content: bytes) -> pd.DataFrame:
 
     # Normalise column names via aliases
     df.rename(columns=FILE_COLUMN_ALIASES, inplace=True)
-
+    print(f"[PARSING DEBUG] After normalising columns: {list(df.columns)}")
     # Check for at least the mandatory columns
     mandatory = {"retailer_clean", "advertiser", "brand", "first_appearance_date", "last_appearance_date", "format"}
     missing_cols = mandatory - set(df.columns)
@@ -106,6 +103,11 @@ def parse_advertisement_file(filename: str, content: bytes) -> pd.DataFrame:
             df[col] = None
 
     df = df[EXPECTED_COLUMNS].copy()
+
+    # Strip whitespace from all string columns; replace blank strings with None
+    str_cols = df.select_dtypes(include="object").columns
+    df[str_cols] = df[str_cols].apply(lambda col: col.str.strip())
+    df[str_cols] = df[str_cols].replace("", None)
 
     for date_col in ("first_appearance_date", "last_appearance_date"):
         df[date_col] = pd.to_datetime(df[date_col], errors="coerce").dt.date
@@ -137,7 +139,7 @@ def _get_simple_value_id(
 
     sv = db.query(SimpleValue).filter(
         SimpleValue.column_name_id == svt.id,
-        SimpleValue.value == raw_value.strip(),
+        SimpleValue.value.ilike(raw_value.strip()),
     ).first()
     result = sv.id if sv else None
     cache[key] = result

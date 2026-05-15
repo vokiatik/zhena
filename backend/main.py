@@ -10,6 +10,8 @@ from sweater.routes.process.attribute import router as attribute_router
 from sweater.routes.process.process_instances import router as process_instances_router
 from sweater.routes.roles import router as roles_router
 from sweater.routes.admin.table_editor import router as admin_router
+from sweater.routes.image_proxy import router as image_proxy_router
+from sweater.routes.yandex_disk import router as yandex_disk_router
 
 from sweater.database.base_db import SessionLocal
 from sweater.services.auth.role_service import seed_default_roles
@@ -37,6 +39,8 @@ app.include_router(attribute_router)
 app.include_router(process_instances_router)
 app.include_router(roles_router)
 app.include_router(admin_router)
+app.include_router(image_proxy_router)
+app.include_router(yandex_disk_router)
 
 
 @app.on_event("startup")

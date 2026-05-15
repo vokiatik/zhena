@@ -24,10 +24,9 @@ from sweater.query_analisys_tools.clarification import (
     handle_new_value_confirmation,
     build_clarification_message,
 )
-from sweater.routes.auth import get_current_user, decode_jwt
+from sweater.routes.auth import decode_jwt
 from sweater.middleware.role_middleware import require_roles
 from sweater.services.auth.role_service import get_user_roles
-from sweater.query_analisys_tools.pipeline import build_sql_query
 # Per-connection state for pending clarifications: chat_id -> list of unmatched entries
 _pending_clarifications: dict[str, dict] = {}
 
@@ -290,7 +289,7 @@ async def _run_pipeline_with_status(db: Session, chat_id: str, message_id: str, 
 
     # Step 4 — Check for unknown data
     await _send_status(db, websocket, chat_id, message_id, "checking_data")
-    metrics_match = compare_metrics(matched, decomposed)
+    compare_metrics(matched, decomposed)
 
     if not unmatched:
         # Step 5 — Build SQL

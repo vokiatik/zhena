@@ -101,19 +101,20 @@ def validate_simple_values(
         existing_by_field[field_name] = list(existing.keys())
 
         for raw in df[col].dropna().unique():
-            raw_str = str(raw).strip()
-            if not raw_str:
+            if not raw:
                 continue
 
             if col in MULTI_VALUE_COLUMNS:
-                parts = split_multi_value(raw_str)
+                parts = split_multi_value(raw)
             else:
-                parts = [raw_str]
+                parts = [raw]
 
             for part in parts:
                 if part.upper() not in existing:
                     missing.append(MissingValue(field=field_name, value=part))
 
+    missing = list({(m.field, m.value): m for m in missing}.values())  # deduplicate
+    missing.sort(key=lambda m: (m.field, m.value))
     return missing, existing_by_field
 
 
@@ -165,6 +166,9 @@ def validate_formats(
     return missing, format_id_map
 
 
+FORMAT_TYPE_ID = "format"
+
+
 def check_all_missing(
     db: Session, df: pd.DataFrame
 ) -> Tuple[List[dict], Dict[str, List[str]]]:
@@ -172,18 +176,44 @@ def check_all_missing(
     Convenience wrapper that runs both simple-value and format validation.
 
     Returns:
-        missing_list  – serialisable list of {field, value} dicts
-        existing_map  – {field_name: [existing_value, ...]}
+        missing_list  – list of {type_id, type_name, column, value} dicts
+        existing_map  – {type_id: [existing_value, ...]}
     """
+    # Build type_id lookup from SimpleValueType
+    svt_rows = db.query(SimpleValueType).all()
+    type_id_by_field: Dict[str, str] = {svt.field_name: str(svt.id) for svt in svt_rows}
+
     sv_missing, existing_by_field = validate_simple_values(db, df)
     fmt_missing, _ = validate_formats(db, df)
 
-    all_missing = sv_missing + fmt_missing
-    existing_by_field["format"] = [
+    # Build existing_by_type keyed by type_id string
+    existing_by_type: Dict[str, List[str]] = {}
+    for field_name, values in existing_by_field.items():
+        tid = type_id_by_field.get(field_name, field_name)
+        existing_by_type[tid] = values
+    existing_by_type[FORMAT_TYPE_ID] = [
         f.format for f in db.query(Format).all() if f.format
     ]
 
-    return [{"field": m.field, "value": m.value} for m in all_missing], existing_by_field
+    # Build missing list with type info
+    missing_list: List[dict] = []
+    for m in sv_missing:
+        tid = type_id_by_field.get(m.field, m.field)
+        missing_list.append({
+            "type_id": tid,
+            "type_name": m.field,
+            "column": m.field,
+            "value": m.value,
+        })
+    for m in fmt_missing:
+        missing_list.append({
+            "type_id": FORMAT_TYPE_ID,
+            "type_name": "format",
+            "column": "format",
+            "value": m.value,
+        })
+
+    return missing_list, existing_by_type
 
 
 def apply_simple_value_decisions(
@@ -197,7 +227,7 @@ def apply_simple_value_decisions(
     replace_map: Dict[Tuple[str, str], str] = {}
     for d in decisions:
         if not d.get("save") and d.get("replace_with"):
-            col = _field_to_col(d["field"])
+            col = _field_to_col(d.get("column") or d.get("field", ""))
             if col:
                 replace_map[(col, d["original_value"].strip().upper())] = d["replace_with"]
 
@@ -218,7 +248,9 @@ def save_new_simple_values(db: Session, decisions: List[dict]) -> None:
     for d in decisions:
         if not d.get("save"):
             continue
-        field_name = d["field"]
+        field_name = d.get("column") or d.get("field")
+        if not field_name:
+            continue
         value = d["original_value"].strip()
 
         type_id = _get_type_id(db, field_name)

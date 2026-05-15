@@ -11,15 +11,24 @@ from alembic import context
 
 from sweater.database.references_db import Reference_Base
 
+
 from sweater.models.process_settings.Process_attributes_crosstable_model import ProcessAttributes
 from sweater.models.process_settings.Picture_processing_model import ProcessSettings
 from sweater.models.process_settings.Process_type_model import ProcessType
 from sweater.models.process_settings.Process_status_model import ProcessStatus
 from sweater.models.process_settings.Process_model import Process
-from sweater.models.retail.Retail_model import Retail
-from sweater.models.retail.Retail_processed_model import RetailProcessed
-from sweater.models.retail.Analyst_processed_model import AnalystProcessed
-from sweater.models.retail.Retail_multi_value_model import RetailMultiValue
+
+from sweater.models.advertisement.Advertisement_model import Advertisement
+from sweater.models.advertisement.Advertisement_add_category_model import AdvertisementAddCategory
+from sweater.models.advertisement.Advertisement_bools_model import AdvertisementBools
+from sweater.models.advertisement.Advertisement_brand_model import AdvertisementBrand
+from sweater.models.advertisement.Advertisement_category_model import AdvertisementCategory
+from sweater.models.advertisement.Advertisement_format_model import AdvertisementFormat
+from sweater.models.advertisement.Advertisement_price_model import AdvertisementPrice
+from sweater.models.advertisement.Advertisement_link_model import AdvertisementLink
+
+from sweater.models.retail.Retail_processed_model import RetailProcessed  # kept for migration history
+from sweater.models.retail.Analyst_processed_model import AnalystProcessed  # kept for migration history
 from sweater.models.admin.table_admin_settings_model import TableAdminSettings
 from sweater.models.Dictionaries.detector_format_comparison import DetectorFormatComparison
 from sweater.models.Dictionaries.format import Format

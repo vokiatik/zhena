@@ -13,14 +13,13 @@ from sweater.services.process.attributes_service import (
 from sweater.services.process.reference_service import get_reference_type_name_by_id
 from sweater.models.process_settings.Process_type_model import ProcessType
 from sweater.database.references_db import get_reference_db
-from sweater.routes.auth import get_current_user
 from sweater.middleware.role_middleware import require_roles
 
 router = APIRouter(prefix="/process/attributes", tags=["process_attributes"])
 
 @router.get("/list")
 def list_table_columns(
-    table_name: str = "retail",
+    table_name: str = "advertisement",
     type_id: str = None,
     user: dict = Depends(require_roles("admin")),
     db: Session = Depends(get_reference_db),

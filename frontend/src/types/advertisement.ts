@@ -8,9 +8,19 @@ export interface RangeValueRef extends SimpleValueRef {
   row_id: string;
 }
 
-export interface AdvertisementItem {
+/** One entry from the advertisement_link table */
+export interface AdvertisementLinkItem {
   id: string;
   url: string;
+  is_incorrect: boolean;
+}
+
+export interface AdvertisementItem {
+  id: string;
+  /** First non-incorrect URL (kept for list thumbnails) */
+  url: string;
+  /** All links from advertisement_link table */
+  links: AdvertisementLinkItem[];
   verified: boolean;
   declined: boolean;
   process_id: string | null;
@@ -51,4 +61,5 @@ export interface AdvertisementVerifyPayload {
   product_category_range_ids: string[];
   brand_category_id: string | null;
   advertising_category_ids: string[];
+  incorrect_link_ids: string[];
 }

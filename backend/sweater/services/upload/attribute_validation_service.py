@@ -9,12 +9,8 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from sweater.models.process_settings.Picture_attribute_reference_model import (
-    PictureAttributeReference,
-)
-from sweater.models.process_settings.Picture_attribute_reference_type_model import (
-    PictureAttributeReferenceType,
-)
+from sweater.models.Dictionaries.simple_value_type import SimpleValueType
+from sweater.models.Dictionaries.simple_value import SimpleValue
 from sweater.models.process_settings.Picture_processing_model import ProcessSettings
 from sweater.models.process_settings.Process_attributes_crosstable_model import (
     ProcessAttributes,
@@ -76,11 +72,11 @@ def _get_attributes_with_reference(
 
 def _existing_values_for_type(db: Session, reference_type_id) -> List[str]:
     rows = (
-        db.query(PictureAttributeReference)
-        .filter(PictureAttributeReference.reference_type_id == reference_type_id)
+        db.query(SimpleValue)
+        .filter(SimpleValue.column_name_id == reference_type_id)
         .all()
     )
-    return [r.reference_value for r in rows]
+    return [r.value for r in rows]
 
 
 # ---------------------------------------------------------------------------
@@ -132,10 +128,10 @@ def check_missing_reference_values(
         print(f"[VALIDATION DEBUG] Column '{column_name}': {len(file_values)} unique file values, {len(existing)} existing in DB, {len(file_values - existing)} missing")
 
         # Resolve type name
-        ref_type_obj = db.query(PictureAttributeReferenceType).filter(
-            PictureAttributeReferenceType.id == attr.reference_type_id
+        ref_type_obj = db.query(SimpleValueType).filter(
+            SimpleValueType.id == attr.reference_type_id
         ).first()
-        type_name = ref_type_obj.reference_type_name if ref_type_obj else ref_type_id
+        type_name = ref_type_obj.field_name if ref_type_obj else ref_type_id
 
         for val in sorted(file_values - existing):
             missing.append(
@@ -180,7 +176,7 @@ def apply_decisions_to_df(df: pd.DataFrame, decisions: List[ConfirmDecision]) ->
 
 
 def save_new_reference_values(db: Session, decisions: List[ConfirmDecision]) -> None:
-    """Persist all decisions where save=True as new PictureAttributeReference rows."""
+    """Persist all decisions where save=True as new SimpleValue rows."""
     from uuid import UUID
 
     for decision in decisions:
@@ -193,17 +189,17 @@ def save_new_reference_values(db: Session, decisions: List[ConfirmDecision]) -> 
 
         # Avoid duplicates
         exists = (
-            db.query(PictureAttributeReference)
+            db.query(SimpleValue)
             .filter(
-                PictureAttributeReference.reference_type_id == type_uuid,
-                PictureAttributeReference.reference_value == decision.original_value,
+                SimpleValue.column_name_id == type_uuid,
+                SimpleValue.value == decision.original_value,
             )
             .first()
         )
         if not exists:
-            new_ref = PictureAttributeReference(
-                reference_value=decision.original_value,
-                reference_type_id=type_uuid,
+            new_ref = SimpleValue(
+                value=decision.original_value,
+                column_name_id=type_uuid,
             )
             db.add(new_ref)
 

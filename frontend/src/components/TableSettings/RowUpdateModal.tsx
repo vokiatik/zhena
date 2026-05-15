@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ColumnDef, TableRow } from "../../hooks/useTableEditor";
 import CustomModal from "../shared/modal/CustomModal";
 import CustomSwitch from "../shared/switch/CustomSwitch";
-import CustomDropdown from "../shared/dropdown/CustomDropdown";
 
 interface Props {
     row: TableRow;
@@ -20,11 +19,6 @@ function isBooleanColumn(col: ColumnDef): boolean {
 function isDateColumn(col: ColumnDef): boolean {
     return col.type.toUpperCase().includes("DATE") || col.type.toUpperCase().includes("TIMESTAMP");
 }
-
-const BOOL_OPTIONS = [
-    { value: "true", label: "True" },
-    { value: "false", label: "False" },
-];
 
 export default function RowUpdateModal({ row, schema, onClose, onSave }: Props) {
     const [form, setForm] = useState<TableRow>({ ...row });

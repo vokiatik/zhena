@@ -5,7 +5,7 @@ export function CompletedStep() {
             <h3 className="dp-completed-title">Process Completed</h3>
             <p className="dp-completed-desc">
                 All data has been reviewed and approved. The results will be uploaded to
-                the analytics database (ClickHouse integration is in preparation).
+                the analytics database.
             </p>
         </div>
     );

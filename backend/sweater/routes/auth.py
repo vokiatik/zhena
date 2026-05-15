@@ -1,6 +1,5 @@
 import os
 import secrets
-import uuid
 import jwt
 import bcrypt
 
@@ -15,7 +14,7 @@ from sweater.schemas.auth.Email_confirmation_schema import ConfirmEmailRequest, 
 from sweater.services.auth.email_confirmation_service import create_email_confirmation, delete_email_confirmation_by_token, get_email_confirmation_by_token
 from sweater.services.auth.password_reset_service import create_password_reset, delete_password_reset_by_token, delete_password_resets_by_user_id, get_password_reset_by_token
 from sweater.services.auth.user_service import create_user, get_user_by_email, update_user
-from sweater.services.auth.role_service import get_user_roles, seed_default_roles, assign_role_to_user, get_role_by_name
+from sweater.services.auth.role_service import get_user_roles
 from sweater.email_sender import send_confirmation_email, send_password_reset_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])

@@ -98,3 +98,12 @@ def get_process_type_name(db: Session, process: Process) -> str:
 def get_process_status_name(db: Session, process: Process) -> str:
     pstatus = db.query(ProcessStatus).filter(ProcessStatus.id == process.status_id).first()
     return pstatus.process_status_name if pstatus else "unknown"
+
+def delete_process_instance(db: Session, process_id: str):
+    process = get_process_instance_by_id(db, process_id)
+    if not process:
+        return None
+
+    db.delete(process)
+    db.commit()
+    return True 

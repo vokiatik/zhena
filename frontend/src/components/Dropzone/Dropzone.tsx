@@ -81,7 +81,7 @@ export default function FileUploadDropzone({ filetype }: { filetype?: string }):
 
             const filedata = new FormData();
             filedata.append("file", file);
-            filetype && filedata.append("filetype", filetype);
+            if (filetype) filedata.append("filetype", filetype);
             filedata.append("decisions", JSON.stringify(decisions));
 
             const result = await apiClient.post("/upload/retail/confirm", filedata, {

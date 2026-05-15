@@ -75,3 +75,8 @@
   cursor: not-allowed;
   transform: none;
 }
+
+.btn-large {
+  padding: 18px 36px;
+  font-size: 1rem;
+}

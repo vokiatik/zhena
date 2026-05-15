@@ -70,31 +70,34 @@ export default function DataPrepWorkflow() {
                 <>
                     <DataPrepStepper currentStepIdx={currentStepIdx} />
 
-                    <div className="dp-card">
-                        <h2 className="dp-card-title">{DATA_PREP_STEPS[currentStepIdx]?.label}</h2>
 
-                        {process.status_name === "initiated" && (
+                    <h2 className="dp-card-title">{DATA_PREP_STEPS[currentStepIdx]?.label}</h2>
+
+                    {process.status_name === "initiated" && (
+                        <div className="dp-card">
                             <FileUploadStep processId={process.id} onDone={handleStepDone} />
-                        )}
-                        {process.status_name === "awaiting_link" && (
+                        </div>
+                    )}
+                    {process.status_name === "awaiting_link" && (
+                        <div className="dp-card">
                             <ProvideLinkStep processId={process.id} onDone={handleStepDone} />
-                        )}
-                        {process.status_name === "analyst_review" && (
-                            <AnalystReviewStep
-                                processId={process.id}
-                                canAct={isAdmin || isAnalyst}
-                                onDone={handleStepDone}
-                            />
-                        )}
-                        {process.status_name === "marketing_review" && (
-                            <MarketingReviewStep
-                                processId={process.id}
-                                canAct={isAdmin || isMarketing}
-                                onDone={handleStepDone}
-                            />
-                        )}
-                        {process.status_name === "completed" && <CompletedStep />}
-                    </div>
+                        </div>
+                    )}
+                    {process.status_name === "analyst_review" && (
+                        <AnalystReviewStep
+                            processId={process.id}
+                            canAct={isAdmin || isAnalyst}
+                            onDone={handleStepDone}
+                        />
+                    )}
+                    {process.status_name === "marketing_review" && (
+                        <MarketingReviewStep
+                            processId={process.id}
+                            canAct={isAdmin || isMarketing}
+                            onDone={handleStepDone}
+                        />
+                    )}
+                    {process.status_name === "completed" && <CompletedStep />}
                 </>
             )}
         </div>

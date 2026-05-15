@@ -3,6 +3,7 @@ import type { PictureItem } from "../../types/picture";
 import type { PictureAttribute } from "../../types/picture_attributes";
 import PictureFieldList from "./PictureFieldList";
 import PresetModal from "./PresetModal";
+import { toPlainImageUrl, toDirectImageUrl, getCachedSrc, setCachedSrc, evictCachedSrc } from "./imageUtils";
 
 interface PictureViewerProps {
     picture: PictureItem;
@@ -33,11 +34,19 @@ export default function PictureViewer({ picture, settings, onVerify, onDecline }
     const [isSaving, setIsSaving] = useState(false);
     const [isDeclining, setIsDeclining] = useState(false);
     const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
+    const [imgUseProxy, setImgUseProxy] = useState(false);
+    const [imgLoading, setImgLoading] = useState(true);
 
     useEffect(() => {
         setFields(getEditableFields(picture));
         setInvalidFields(new Set());
     }, [picture, getEditableFields]);
+
+    // Reset image state when picture changes
+    useEffect(() => {
+        setImgUseProxy(false);
+        setImgLoading(true);
+    }, [picture]);
 
     const handleFieldChange = (key: string, value: string) => {
         setFields((prev) => ({ ...prev, [key]: value }));
@@ -93,18 +102,47 @@ export default function PictureViewer({ picture, settings, onVerify, onDecline }
 
     return (
         <div className="pv-wrapper" onKeyDown={handleKeyDown}>
-            <div className="pv-image-container">
-                <img src={fields.advertisement_id} alt="screening" className="pv-image" />
-            </div>
+            <div className="pv-image-fields-container">
+                <div className="pv-image-container">
+                    {(() => {
+                        const rawUrl = fields.advertisement_id ?? "";
+                        const imgSrc = getCachedSrc(rawUrl) ?? (imgUseProxy ? toDirectImageUrl(rawUrl) : toPlainImageUrl(rawUrl));
+                        const handleImgLoad = () => { setCachedSrc(rawUrl, imgSrc); setImgLoading(false); };
+                        const handleReload = () => { evictCachedSrc(rawUrl); setImgUseProxy(true); setImgLoading(true); };
+                        return (
+                            <>
+                                {imgLoading && (
+                                    <div className="pv-image-loader">
+                                        <span className="pv-image-spinner" />
+                                    </div>
+                                )}
+                                <img
+                                    src={imgSrc}
+                                    alt="screening"
+                                    className="pv-image"
+                                    style={imgLoading ? { opacity: 0, position: "absolute" } : undefined}
+                                    onLoad={handleImgLoad}
+                                    onError={() => setImgLoading(false)}
+                                />
+                                {rawUrl && (
+                                    <button type="button" className="pv-reload-btn" onClick={handleReload}>
+                                        ↺ Reload via proxy
+                                    </button>
+                                )}
+                            </>
+                        );
+                    })()}
+                </div>
 
-            <PictureFieldList
-                fields={fields}
-                settingsMap={settingsMap}
-                hasSettings={!!hasSettings}
-                onFieldChange={handleFieldChange}
-                onShowPreset={setShowPreset}
-                invalidFields={invalidFields}
-            />
+                <PictureFieldList
+                    fields={fields}
+                    settingsMap={settingsMap}
+                    hasSettings={!!hasSettings}
+                    onFieldChange={handleFieldChange}
+                    onShowPreset={setShowPreset}
+                    invalidFields={invalidFields}
+                />
+            </div>
 
             <div className="pv-buttons">
                 <button className="button-primary" onClick={handleSave} disabled={isSaving || isDeclining} type="button">

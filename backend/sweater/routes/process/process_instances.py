@@ -22,6 +22,7 @@ from sweater.schemas.process.process_instance_schema import (
     UpdateProcessInstance,
 )
 from sweater.models.process_settings.Process_status_model import ProcessStatus
+from sweater.models.Dictionaries.format import Format
 from sweater.services.process.process_instance_service import (
     list_process_instances,
     create_process_instance,
@@ -29,11 +30,11 @@ from sweater.services.process.process_instance_service import (
     get_process_instance_by_id,
     get_process_type_name,
     get_process_status_name,
+    delete_process_instance,
 )
 from sweater.services.upload.advertisement_parsing_service import (
     parse_advertisement_file,
     save_advertisement_dataframe_to_db,
-    parse_links_placeholder,
 )
 from sweater.services.upload.advertisement_validation_service import (
     check_all_missing,
@@ -106,6 +107,26 @@ async def create_data_prep_process(
     )
     return {"ok": True, "process_id": str(process.id)}
 
+# ── Delete data_prep process ─────────────────────────────────────
+
+@router.delete("/delete/{process_id}")
+async def delete_data_prep_process(
+    process_id: str,
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_reference_db),
+):
+    process = get_process_instance_by_id(db, process_id)
+    if not process:
+        raise HTTPException(status_code=404, detail="Process not found")
+    if get_process_status_name(db, process) == "deleted":
+        raise HTTPException(status_code=400, detail="Process is already deleted")
+    if get_process_status_name(db, process) != "canceled":
+        raise HTTPException(status_code=400, detail="Process is not canceled")
+
+    delete_process_instance(db, process_id)
+    update_process_status(db, process.id, "deleted")
+    return {"ok": True, "process_id": str(process.id)}
+
 
 # ── Step 1 – File upload ─────────────────────────────────────────
 
@@ -142,7 +163,7 @@ async def upload_file_for_process(
         return {
             "status": "needs_validation",
             "missing_values": missing_values,
-            "existing_values_by_field": existing_by_field,
+            "existing_values_by_type": existing_by_field,
         }
 
     # All values found – save and advance
@@ -208,19 +229,21 @@ async def confirm_dict_for_process(
         raise HTTPException(status_code=400, detail=str(e))
 
     # Persist new simple values and apply replacements
-    simple_decisions = [d for d in raw_decisions if d.get("field") != "format"]
+    simple_decisions = [d for d in raw_decisions if d.get("column") != "format"]
     save_new_simple_values(db, simple_decisions)
     df = apply_simple_value_decisions(df, simple_decisions)
 
     # Persist new / mapped formats
     for d in raw_decisions:
-        if d.get("field") != "format":
+        if d.get("column") != "format":
             continue
         orig = d.get("original_value", "").strip()
-        if d.get("new_format_value"):
-            save_new_format(db, d["new_format_value"], detector_value=orig)
-        elif d.get("link_to_format_id"):
-            save_new_detector_mapping(db, orig, d["link_to_format_id"])
+        if d.get("save"):
+            save_new_format(db, orig, detector_value=orig)
+        elif d.get("replace_with"):
+            fmt_row = db.query(Format).filter(Format.format == d["replace_with"]).first()
+            if fmt_row:
+                save_new_detector_mapping(db, orig, fmt_row.id)
 
     process.comment = file.filename
     db.commit()

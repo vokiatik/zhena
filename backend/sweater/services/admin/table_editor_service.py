@@ -12,9 +12,11 @@ from sweater.models.process_settings.Process_attributes_crosstable_model import 
 from sweater.models.process_settings.Process_type_model import ProcessType as _ProcessType  # noqa: F401
 from sweater.models.process_settings.Process_status_model import ProcessStatus as _ProcessStatus  # noqa: F401
 from sweater.models.Dictionaries.format import Format as _Format  # noqa: F401
-from sweater.models.retail.Retail_model import Retail as _Retail  # noqa: F401
-from sweater.models.retail.Analyst_processed_model import AnalystProcessed as _AnalystProcessed  # noqa: F401
-from sweater.models.retail.Retail_processed_model import RetailProcessed as _RetailProcessed  # noqa: F401
+from sweater.models.advertisement.Advertisement_model import Advertisement as _Advertisement  # noqa: F401
+from sweater.models.advertisement.Advertisement_link_model import AdvertisementLink as _AdvertisementLink  # noqa: F401
+from sweater.models.advertisement.Advertisement_brand_model import AdvertisementBrand as _AdvertisementBrand  # noqa: F401
+from sweater.models.advertisement.Advertisement_category_model import AdvertisementCategory as _AdvertisementCategory  # noqa: F401
+from sweater.models.advertisement.Advertisement_add_category_model import AdvertisementAddCategory as _AdvertisementAddCategory  # noqa: F401
 
 
 # ─── Table admin settings CRUD ────────────────────────────────────────────────

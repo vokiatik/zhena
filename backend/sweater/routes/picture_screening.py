@@ -1,17 +1,10 @@
-import uuid
-
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from sweater.database.references_db import get_reference_db
-from sweater.routes.auth import get_current_user
 from sweater.middleware.role_middleware import require_roles
 from sweater.services.picture.picture_verification_service import (
-    getUnverifiedPictureById,
-    getUnverifiedPictures,
-    verifyPicture,
-    unverifyPicture,
     get_pictures_for_process,
     verify_picture_for_process,
     decline_picture_for_process,
@@ -43,6 +36,7 @@ class AdvertisementVerifyRequest(BaseModel):
     product_category_range_ids: Optional[List[str]] = None
     brand_category_id: Optional[str] = None
     advertising_category_ids: Optional[List[str]] = None
+    incorrect_link_ids: Optional[List[str]] = None
 
 
 class AdvertisementDeclineRequest(BaseModel):
@@ -133,6 +127,7 @@ async def verify_advertisement_picture(
         product_category_range_ids=body.product_category_range_ids or [],
         brand_category_id=body.brand_category_id,
         advertising_category_ids=body.advertising_category_ids or [],
+        incorrect_link_ids=body.incorrect_link_ids,
     )
 
 
@@ -172,54 +167,3 @@ async def decline_process_picture(
         process_id=body.process_id,
         picture_id=body.id,
     )
-
-
-# ── Legacy routes ────────────────────────────────────────────────
-
-@router.get("/{role}")
-async def get_unverified_pictures(
-    user: dict = Depends(require_roles("admin", "marketing_specialist", "analyst")),
-    db: Session = Depends(get_reference_db),
-    role: str = None
-):
-    pictures = getUnverifiedPictures(db)
-    return pictures
-
-
-@router.post("/verify")
-async def verify_picture(
-    body: VerifyRequest,
-    user: dict = Depends(require_roles("admin", "marketing_specialist", "analyst")),
-    db: Session = Depends(get_reference_db),
-):
-    picture_id = body.id
-    picture = getUnverifiedPictureById(db, picture_id)
-    if not picture:
-        raise HTTPException(status_code=404, detail="Picture not found")
-    
-    for key, value in body.extra.items():
-        if hasattr(picture, key):
-            setattr(picture, key, value)
-
-    verifyPicture(db, picture)
-    
-    return {"ok": True}
-
-@router.post("/unverify")
-async def unverify_picture(
-    body: VerifyRequest,
-    user: dict = Depends(require_roles("admin", "marketing_specialist", "analyst")),
-    db: Session = Depends(get_reference_db),
-):
-    picture_id = body.id
-    picture = getUnverifiedPictureById(db, picture_id)
-    if not picture:
-        raise HTTPException(status_code=404, detail="Picture not found")
-    
-    for key, value in body.extra.items():
-        if hasattr(picture, key):
-            setattr(picture, key, value)
-
-    unverifyPicture(db, picture)
-    
-    return {"ok": True}

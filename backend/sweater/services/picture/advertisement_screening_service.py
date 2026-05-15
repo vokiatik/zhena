@@ -18,7 +18,6 @@ from sweater.models.Dictionaries.simple_value import SimpleValue
 from sweater.models.Dictionaries.simple_value_type import SimpleValueType
 from sweater.services.process.process_instance_service import (
     get_process_instance_by_id,
-    get_process_type_name,
     get_process_status_name,
     set_process_total_items,
     update_process_status,
@@ -67,9 +66,14 @@ def _serialise_advertisement(db: Session, ad: Advertisement) -> dict:
     links = (
         db.query(AdvertisementLink)
         .filter(AdvertisementLink.add_id == ad.id)
+        .order_by(AdvertisementLink.created_at)
         .all()
     )
-    first_url = links[0].link if links else ""
+    links_list = [
+        {"id": str(lnk.id), "url": lnk.link or "", "is_incorrect": lnk.is_incorrect}
+        for lnk in links
+    ]
+    first_url = next((lnk.link for lnk in links if not lnk.is_incorrect), links[0].link if links else "")
 
     # Brand range
     brand_range_rows = (
@@ -110,6 +114,7 @@ def _serialise_advertisement(db: Session, ad: Advertisement) -> dict:
     return {
         "id": str(ad.id),
         "url": first_url or "",
+        "links": links_list,
         "verified": ad.verified,
         "declined": ad.declined,
         "process_id": str(ad.process_id) if ad.process_id else None,
@@ -173,6 +178,7 @@ def verify_advertisement(
     product_category_range_ids: list,
     brand_category_id: Optional[str],
     advertising_category_ids: list,
+    incorrect_link_ids: Optional[list] = None,
 ) -> dict:
     """
     Update FK fields on the advertisement and its related range tables,
@@ -207,6 +213,13 @@ def verify_advertisement(
         db.query(AdvertisementAddCategory).filter(AdvertisementAddCategory.add_id == ad.id).delete()
         for acid in advertising_category_ids:
             db.add(AdvertisementAddCategory(add_id=ad.id, add_category_id=uuid.UUID(acid)))
+
+    # Mark links as incorrect/correct
+    if incorrect_link_ids is not None:
+        incorrect_set = set(incorrect_link_ids)
+        all_links = db.query(AdvertisementLink).filter(AdvertisementLink.add_id == ad.id).all()
+        for lnk in all_links:
+            lnk.is_incorrect = str(lnk.id) in incorrect_set
 
     ad.verified = True
     ad.declined = False

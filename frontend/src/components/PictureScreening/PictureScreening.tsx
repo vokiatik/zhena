@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toDirectImageUrl } from "./imageUtils";
 import { usePictureScreening } from "../../hooks/usePictureScreening";
 import { usePictureScreeningSettings } from "../../hooks/usePictureScreeningSettings";
 import { useAdvertisementScreening } from "../../hooks/useAdvertisementScreening";
@@ -10,13 +11,15 @@ import AdvertisementViewer from "./AdvertisementViewer";
 import VerifiedPictureModal from "./VerifiedPictureModal";
 import DeclinedPictureModal from "./DeclinedPictureModal";
 import "./PictureScreening.css";
+import { useProcessInstances } from "../../hooks/useProcessInstances";
+import { useToast } from "../../contexts/ToastContext";
 
 interface PictureScreeningProps {
-    role: string;
     processId?: string;
+    onDone?: () => void;
 }
 
-export default function PictureScreening({ role, processId }: PictureScreeningProps) {
+export default function PictureScreening({ processId, onDone }: PictureScreeningProps) {
     const { get } = useApi();
     const [activeTab, setActiveTab] = useState<"unverified" | "verified" | "declined">("unverified");
     const [selectedPicture, setSelectedPicture] = useState<PictureItem | null>(null);
@@ -25,6 +28,28 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
     const [selectedDeclinedAd, setSelectedDeclinedAd] = useState<AdvertisementItem | null>(null);
     const [processTypeName, setProcessTypeName] = useState<string | null>(null);
     const [typeLoading, setTypeLoading] = useState(!!processId);
+
+    const { analystConfirm } = useProcessInstances();
+    const { showToast } = useToast();
+    const [confirming, setConfirming] = useState(false);
+
+    const handleConfirm = async () => {
+        if (!processId) return;
+        setConfirming(true);
+        try {
+            const result = await analystConfirm(processId);
+            if (result.ok) {
+                showToast("Analyst review completed", "success");
+                onDone?.();
+            } else {
+                showToast("Failed to confirm review", "error");
+            }
+        } catch {
+            showToast("Failed to confirm review", "error");
+        } finally {
+            setConfirming(false);
+        }
+    };
 
     // Determine process type when processId is provided
     useEffect(() => {
@@ -42,8 +67,8 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
     const adScreening = useAdvertisementScreening(processId ?? "__none__");
 
     // ── Legacy picture screening ─────────────────────────────────
-    const legacyScreening = usePictureScreening(role, isDataPrep ? undefined : processId);
-    const { settings, isLoading: settingsLoading } = usePictureScreeningSettings(isDataPrep ? undefined : processId);
+    const legacyScreening = usePictureScreening(processId, isDataPrep !== false);
+    const { settings, isLoading: settingsLoading } = usePictureScreeningSettings(isDataPrep === false ? processId : undefined);
 
     if (typeLoading || (isDataPrep ? adScreening.isLoading : legacyScreening.isLoading || settingsLoading)) {
         return <div className="ps-container"><p className="ps-loading">Loading…</p></div>;
@@ -98,7 +123,7 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                         ) : (
                             verified.map((ad) => (
                                 <button key={ad.id} className="ps-verified-item" onClick={() => setSelectedVerifiedAd(ad)} type="button">
-                                    <img src={ad.url} alt="verified ad" className="ps-verified-img" />
+                                    <img src={toDirectImageUrl(ad.links?.find(l => !l.is_incorrect)?.url ?? ad.url ?? "")} alt="verified ad" className="ps-verified-img" />
                                 </button>
                             ))
                         )}
@@ -112,7 +137,7 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                         ) : (
                             declined.map((ad) => (
                                 <button key={ad.id} className="ps-declined-item" onClick={() => setSelectedDeclinedAd(ad)} type="button">
-                                    <img src={ad.url} alt="declined ad" className="ps-declined-img" />
+                                    <img src={toDirectImageUrl(ad.links?.find(l => !l.is_incorrect)?.url ?? ad.url ?? "")} alt="declined ad" className="ps-declined-img" />
                                 </button>
                             ))
                         )}
@@ -122,6 +147,7 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                 {selectedVerifiedAd && (
                     <div className="ps-modal-overlay" onClick={() => setSelectedVerifiedAd(null)}>
                         <div className="ps-modal" onClick={(e) => e.stopPropagation()}>
+                            <h3>Verified Advertisement Details</h3>
                             <AdvertisementViewer
                                 advertisement={selectedVerifiedAd}
                                 options={options}
@@ -138,6 +164,7 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
                 {selectedDeclinedAd && (
                     <div className="ps-modal-overlay" onClick={() => setSelectedDeclinedAd(null)}>
                         <div className="ps-modal" onClick={(e) => e.stopPropagation()}>
+                            <h3>Declined Advertisement Details</h3>
                             <AdvertisementViewer
                                 advertisement={selectedDeclinedAd}
                                 options={options}
@@ -201,7 +228,14 @@ export default function PictureScreening({ role, processId }: PictureScreeningPr
             {activeTab === "unverified" && (
                 <>
                     {!currentPicture ? (
-                        <p className="ps-done">All pictures have been verified!</p>
+                        <button
+                            className="button-primary dp-submit-btn"
+                            onClick={handleConfirm}
+                            disabled={confirming}
+                        >
+                            {confirming ? "Completing…" : "Complete Review"}
+                        </button>
+
                     ) : (
                         <PictureViewer
                             picture={currentPicture}

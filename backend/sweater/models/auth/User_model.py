@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Boolean, Column, Date, DateTime, Text, func
+from sqlalchemy import Boolean, Column, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sweater.database.base_db import Base
 

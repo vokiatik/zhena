@@ -1,0 +1,115 @@
+/* ── Yandex Disk Folder Tree ─────────────────────────────────────────────── */
+
+.ydisk-tree,
+.ydisk-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ydisk-tree {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.ydisk-node {
+    margin: 2px 0;
+}
+
+.ydisk-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* ── Expand/collapse arrow ───────────────────────────────────────────────── */
+
+.ydisk-arrow {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.15s, transform 0.15s;
+    padding: 0;
+}
+
+.ydisk-arrow:hover {
+    color: #e5e7eb;
+}
+
+.ydisk-arrow--open {
+    transform: rotate(90deg);
+}
+
+.ydisk-arrow--spacer {
+    pointer-events: none;
+    visibility: hidden;
+}
+
+/* ── Label row ───────────────────────────────────────────────────────────── */
+
+.ydisk-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 5px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s;
+    flex: 1;
+    min-width: 0;
+}
+
+.ydisk-label:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.ydisk-checkbox {
+    width: 15px;
+    height: 15px;
+    accent-color: #60a5fa;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.ydisk-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ydisk-name {
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.ydisk-count {
+    font-size: 0.75rem;
+    color: #6b7280;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ydisk-children {
+    padding-left: 1.25rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+    margin-left: 0.9rem;
+    margin-top: 2px;
+}

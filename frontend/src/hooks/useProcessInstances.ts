@@ -7,7 +7,7 @@ import type { ConfirmDecision, ValidationRequiredResponse } from "../types/file_
 type UploadFileResult = { ok: boolean; status?: string } | ValidationRequiredResponse;
 
 export function useProcessInstances() {
-    const { get, post, put } = useApi();
+    const { get, post, put, del } = useApi();
 
     const fetchProcessInstances = useCallback(async () => {
         const response = await get<ProcessInstance[]>("/process-instances/list");
@@ -128,6 +128,16 @@ export function useProcessInstances() {
         },
         [put, refetch]
     );
+    const deleteProcessInstance = useCallback(
+        async (processId: string) => {
+            const response = await del<{ ok: boolean }>(
+                `/process-instances/delete/${processId}`
+            );
+            refetch();
+            return response.data;
+        },
+        [del, refetch]
+    );
 
     return {
         processInstances,
@@ -143,5 +153,6 @@ export function useProcessInstances() {
         marketingConfirm,
         cancelProcess,
         updateProcessInstance,
+        deleteProcessInstance,
     };
 }

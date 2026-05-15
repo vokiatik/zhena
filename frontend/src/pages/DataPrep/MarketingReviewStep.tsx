@@ -48,7 +48,7 @@ export default function MarketingReviewStep({ processId, canAct, onDone }: Marke
                 click "Complete Review" to finish the process.
             </p>
             <div className="dp-screening-wrapper">
-                <PictureScreening role="marketing_specialist" processId={processId} />
+                <PictureScreening processId={processId} />
             </div>
             <div className="dp-step-footer">
                 <button
